@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -15,18 +16,21 @@ import (
 type sessionState int
 
 const (
+	dotChar                = " • "
 	inputView sessionState = iota
 	listView
 )
 
 var (
-	appStyle   = lipgloss.NewStyle().Padding(1, 2)
-	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color("#25A065")).
-			Padding(0, 1)
+	appStyle          = lipgloss.NewStyle().Padding(1, 2)
+	heightThing       = lipgloss.NewStyle().Height(9)
+	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
+	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#cff27e")).Bold(true).SetString("Zen Cli")
+	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#E5B25D")).PaddingLeft(-10)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#f2dd6e"))
+	dotStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
+	subtleStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 )
 
 type item string
@@ -60,8 +64,9 @@ type model struct {
 	state        sessionState
 	input        textinput.Model
 	list         list.Model
-	name         string
+	minute       int
 	selectedItem string
+	err          error
 	quitting     bool
 }
 
@@ -71,37 +76,27 @@ func initialModel() model {
 	ti.Focus()
 	ti.CharLimit = 50
 	ti.Width = 30
+	ti.Prompt = "- "
 
 	items := []list.Item{
+		item("None"),
 		item("Tree"),
 		item("Tomato"),
 		item("Coffee"),
 		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
-		item("Carrot"),
 	}
 
-	l := list.New(items, itemDelegate{}, 30, 10)
+	l := list.New(items, itemDelegate{}, 30, 11)
 	l.Title = "Select a visual option: "
 	l.SetShowStatusBar(false)
+	l.Styles.Title = listTitleStyle
 	// l.SetShowTitle(false)
 
 	return model{
 		state: inputView,
 		input: ti,
 		list:  l,
+		err:   nil,
 	}
 }
 
@@ -111,8 +106,6 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.list.SetSize(30, 10)
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyCtrlC {
 			m.quitting = true
@@ -138,7 +131,16 @@ func updateInput(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyEnter:
 			if m.input.Value() != "" {
-				m.name = m.input.Value()
+
+				min, err := strconv.Atoi(m.input.Value())
+
+				if err != nil {
+					m.err = err
+					m.quitting = true
+					return m, tea.Quit
+				}
+
+				m.minute = min
 				m.state = listView
 				return m, nil
 			}
@@ -177,13 +179,18 @@ func (m model) View() string {
 	switch m.state {
 	case inputView:
 		view = fmt.Sprintf(
-			"Zen cli: \n\nTime in minute: \n\n%s\n\n%s",
-			m.input.View(),
-			"(Press Enter to continue)",
-		)
+			"%s \n\n%s",
+			titleStyle.Render(),
+			paddingleft.Render(
+				fmt.Sprintf("%s\n\n%s", heightThing.Render(fmt.Sprintf("%s \n\n%s", listTitleStyle.Render("Time in minute: "),
+					m.input.View(),
+				)),
+					subtleStyle.Render("↩ Enter")+dotStyle+subtleStyle.Render("Ctrl + C"))))
 	case listView:
 		view = fmt.Sprintf(
-			"Zen cli: \n\n%s\n\n",
+			"%s \n\n%s",
+			titleStyle.Render(),
+			// listTitleStyle.Render("Select a visual option: "),
 			m.list.View(),
 		)
 	}
@@ -200,6 +207,10 @@ func main() {
 	}
 
 	if model, ok := m.(model); ok && model.quitting {
-		fmt.Printf("\nHello %s! You selected: %s\n", model.name, model.selectedItem)
+		if model.err != nil {
+			fmt.Printf("Error Occoured: %s \n", model.err.Error())
+			return
+		}
+		fmt.Printf("\nMinute: %d, Visual Option: %s\n", model.minute, model.selectedItem)
 	}
 }
