@@ -7,8 +7,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -66,8 +68,16 @@ type model struct {
 	list         list.Model
 	minute       int
 	selectedItem string
+	timer        timer.Model
 	err          error
 	quitting     bool
+}
+
+type keymap struct {
+	start key.Binding
+	stop  key.Binding
+	reset key.Binding
+	quit  key.Binding
 }
 
 func initialModel() model {
