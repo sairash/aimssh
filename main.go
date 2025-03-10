@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"zencli/ascii_generator"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -66,18 +67,19 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 }
 
 type model struct {
-	state        sessionState
-	input        textinput.Model
-	list         list.Model
-	minute       int
-	selectedItem string
-	timer        timer.Model
-	keymap       keymap
-	help         help.Model
-	err          error
-	width        int
-	height       int
-	quitting     bool
+	state           sessionState
+	input           textinput.Model
+	list            list.Model
+	minute          int
+	selectedItem    string
+	timer           timer.Model
+	keymap          keymap
+	help            help.Model
+	err             error
+	width           int
+	height          int
+	generated_thing string
+	quitting        bool
 }
 
 type keymap struct {
@@ -203,6 +205,7 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.selectedItem = string(selected)
 				m.timer = timer.NewWithInterval(time.Duration(m.minute)*time.Minute, time.Millisecond)
 				m.state = timerView
+				m.generated_thing = ascii_generator.GenerateTree(40, 20)
 				m.keymap.start.SetEnabled(false)
 				return m, m.timer.Init()
 			}
@@ -291,7 +294,7 @@ func (m model) View() string {
 		view = fmt.Sprintf(
 			"%s \n\n %s",
 			titleStyle.Render(),
-			paddingleft.Render(fmt.Sprintf("%s\n\n%s", heightThing.Render(fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60)), m.helpView())))
+			paddingleft.Render(fmt.Sprintf("%s\n\n%s\n\n%s", fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60), m.generated_thing, m.helpView())))
 
 	}
 

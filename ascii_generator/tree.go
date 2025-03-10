@@ -6,9 +6,6 @@ import (
 )
 
 const (
-	width  = 40
-	height = 20
-
 	branchColor = "\033[38;5;94m" // Brown-ish color for branches.
 	leafColor   = "\033[32m"      // Green color for leaves.
 	resetColor  = "\033[0m"       // Reset color.
@@ -21,10 +18,15 @@ type Cell struct {
 
 type Tree struct {
 	Canvas [][]Cell
+	width  int
+	height int
 }
 
-func initCanvas() Tree {
-	tree := Tree{}
+func initCanvas(width, height int) Tree {
+	tree := Tree{
+		height: height,
+		width:  width,
+	}
 	tree.Canvas = make([][]Cell, height)
 	for i := 0; i < height; i++ {
 		tree.Canvas[i] = make([]Cell, width)
@@ -44,7 +46,7 @@ func (t Tree) drawLine(x0, y0, x1, y1 float64, ch rune, col string) {
 		y := y0 + dy*float64(i)/float64(steps)
 		ix := int(math.Round(x))
 		iy := int(math.Round(y))
-		if ix >= 0 && ix < width && iy >= 0 && iy < height {
+		if ix >= 0 && ix < t.width && iy >= 0 && iy < t.height {
 			t.Canvas[iy][ix] = Cell{ch, col}
 		}
 	}
@@ -53,7 +55,7 @@ func (t Tree) drawLine(x0, y0, x1, y1 float64, ch rune, col string) {
 func (t Tree) drawBranch(x, y, angle, length float64, depth int) {
 	if depth == 0 || length < 1 {
 		ix, iy := int(math.Round(x)), int(math.Round(y))
-		if ix >= 0 && ix < width && iy >= 0 && iy < height {
+		if ix >= 0 && ix < t.width && iy >= 0 && iy < t.height {
 			t.Canvas[iy][ix] = Cell{'#', leafColor}
 		}
 		return
@@ -82,6 +84,24 @@ func (t Tree) drawBranch(x, y, angle, length float64, depth int) {
 	t.drawBranch(xEnd, yEnd, rightAngle, newLength, depth-1)
 }
 
+func (t Tree) StringPrint() string {
+	return_string := ""
+
+	for i := 0; i < t.height; i++ {
+		for j := 0; j < t.width; j++ {
+			cell := t.Canvas[i][j]
+			if cell.color != "" {
+				return_string += cell.color + string(cell.ch) + resetColor
+			} else {
+				return_string += string(cell.ch)
+			}
+		}
+		return_string += "\n"
+	}
+
+	return return_string
+}
+
 // func printCanvas() {
 // 	for i := 0; i < height; i++ {
 // 		for j := 0; j < width; j++ {
@@ -96,8 +116,8 @@ func (t Tree) drawBranch(x, y, angle, length float64, depth int) {
 // 	}
 // }
 
-func GenerateTree() Tree {
-	t := initCanvas()
+func GenerateTree(width, height int) string {
+	t := initCanvas(width, height)
 
 	startX := float64(width / 2)
 	startY := float64(height - 1)
@@ -105,5 +125,5 @@ func GenerateTree() Tree {
 
 	t.drawBranch(startX, startY, math.Pi/2, initialLength, 10)
 
-	return t
+	return t.StringPrint()
 }
