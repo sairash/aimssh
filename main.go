@@ -27,10 +27,10 @@ const (
 )
 
 var (
-	appStyle          = lipgloss.NewStyle().Padding(1, 2)
+	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(50)
 	heightThing       = lipgloss.NewStyle().Height(9)
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
-	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString("Zen Cli")
+	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString("Zen Cli").AlignHorizontal(lipgloss.Center)
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
@@ -75,6 +75,8 @@ type model struct {
 	keymap       keymap
 	help         help.Model
 	err          error
+	width        int
+	height       int
 	quitting     bool
 }
 
@@ -140,6 +142,9 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyCtrlC {
 			m.quitting = true
@@ -241,6 +246,15 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func (m model) center(s string) string {
+	if len(s) >= m.width {
+		return s
+	}
+	n := m.width - len(s)
+	div := n / 2
+	return strings.Repeat(" ", div) + s
+}
+
 func (m model) helpView() string {
 	return "\n" + m.help.ShortHelpView([]key.Binding{
 		m.keymap.start,
@@ -277,11 +291,11 @@ func (m model) View() string {
 		view = fmt.Sprintf(
 			"%s \n\n %s",
 			titleStyle.Render(),
-			paddingleft.Render(fmt.Sprintf("%d : %d\n\n%s", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60, m.helpView())))
+			paddingleft.Render(fmt.Sprintf("%s\n\n%s", heightThing.Render(fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60)), m.helpView())))
 
 	}
 
-	return appStyle.Render(view)
+	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, appStyle.Render(view))
 }
 
 func main() {
