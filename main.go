@@ -22,19 +22,21 @@ type sessionState int
 
 const (
 	dotChar                = " • "
+	app_width              = 50
 	inputView sessionState = iota
 	listView
 	timerView
 )
 
 var (
-	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(50)
+	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width)
 	heightThing       = lipgloss.NewStyle().Height(9)
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
 	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString("Zen Cli").AlignHorizontal(lipgloss.Center)
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
+	brownColor        = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969"))
 	dotStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
 	subtleStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 )
@@ -205,7 +207,7 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.selectedItem = string(selected)
 				m.timer = timer.NewWithInterval(time.Duration(m.minute)*time.Minute, time.Millisecond)
 				m.state = timerView
-				m.generated_thing = ascii_generator.GenerateTree(40, 20)
+				m.generated_thing = ascii_generator.GenerateTree(40, 20) + brownColor.Render(strings.Repeat("█", app_width-8))
 				m.keymap.start.SetEnabled(false)
 				return m, m.timer.Init()
 			}
