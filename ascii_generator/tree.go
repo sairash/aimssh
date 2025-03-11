@@ -11,21 +11,10 @@ const (
 	resetColor  = "\033[0m"       // Reset color.
 )
 
-type Cell struct {
-	ch    rune
-	color string
-}
-
-type Tree struct {
-	Canvas [][]Cell
-	width  int
-	height int
-}
-
-func initCanvas(width, height int) Tree {
-	tree := Tree{
-		height: height,
-		width:  width,
+func initCanvas(width, height int) AsciiArt {
+	tree := AsciiArt{
+		Height: height,
+		Width:  width,
 	}
 	tree.Canvas = make([][]Cell, height)
 	for i := 0; i < height; i++ {
@@ -37,7 +26,7 @@ func initCanvas(width, height int) Tree {
 	return tree
 }
 
-func (t Tree) drawLine(x0, y0, x1, y1 float64, ch rune, col string) {
+func (t AsciiArt) drawLine(x0, y0, x1, y1 float64, ch rune, col string) {
 	dx := x1 - x0
 	dy := y1 - y0
 	steps := int(math.Max(math.Abs(dx), math.Abs(dy)))
@@ -46,16 +35,16 @@ func (t Tree) drawLine(x0, y0, x1, y1 float64, ch rune, col string) {
 		y := y0 + dy*float64(i)/float64(steps)
 		ix := int(math.Round(x))
 		iy := int(math.Round(y))
-		if ix >= 0 && ix < t.width && iy >= 0 && iy < t.height {
+		if ix >= 0 && ix < t.Width && iy >= 0 && iy < t.Height {
 			t.Canvas[iy][ix] = Cell{ch, col}
 		}
 	}
 }
 
-func (t Tree) drawBranch(x, y, angle, length float64, depth int) {
+func (t AsciiArt) drawBranch(x, y, angle, length float64, depth int) {
 	if depth == 0 || length < 1 {
 		ix, iy := int(math.Round(x)), int(math.Round(y))
-		if ix >= 0 && ix < t.width && iy >= 0 && iy < t.height {
+		if ix >= 0 && ix < t.Width && iy >= 0 && iy < t.Height {
 			t.Canvas[iy][ix] = Cell{'#', leafColor}
 		}
 		return
@@ -84,22 +73,40 @@ func (t Tree) drawBranch(x, y, angle, length float64, depth int) {
 	t.drawBranch(xEnd, yEnd, rightAngle, newLength, depth-1)
 }
 
-func (t Tree) StringPrint() string {
+func (t AsciiArt) StringPrint() string {
 	return_string := ""
 
-	for i := 0; i < t.height; i++ {
-		for j := 0; j < t.width; j++ {
+	for i := 0; i < t.Height; i++ {
+		for j := 0; j < t.Width; j++ {
 			cell := t.Canvas[i][j]
-			if cell.color != "" {
-				return_string += cell.color + string(cell.ch) + resetColor
+			if cell.Color != "" {
+				return_string += cell.Color + string(cell.Ch) + resetColor
 			} else {
-				return_string += string(cell.ch)
+				return_string += string(cell.Ch)
 			}
 		}
 		return_string += "\n"
 	}
 
 	return return_string
+}
+
+func (t AsciiArt) StringArray() []string {
+	ret_string_arr := []string{}
+
+	for i := 0; i < t.Height; i++ {
+		str := ""
+		for j := 0; j < t.Width; j++ {
+			cell := t.Canvas[i][j]
+			if cell.Color != "" {
+				str += cell.Color + string(cell.Ch) + resetColor
+			} else {
+				str += string(cell.Ch)
+			}
+		}
+		ret_string_arr = append(ret_string_arr, str)
+	}
+	return ret_string_arr
 }
 
 // func printCanvas() {
@@ -116,7 +123,7 @@ func (t Tree) StringPrint() string {
 // 	}
 // }
 
-func GenerateTree(width, height int) string {
+func GenerateAsciiArt(width, height int) AsciiArt {
 	t := initCanvas(width, height)
 
 	startX := float64(width / 2)
@@ -125,5 +132,5 @@ func GenerateTree(width, height int) string {
 
 	t.drawBranch(startX, startY, math.Pi/2, initialLength, 10)
 
-	return t.StringPrint()
+	return t
 }

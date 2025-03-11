@@ -30,7 +30,7 @@ const (
 
 var (
 	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width)
-	heightThing       = lipgloss.NewStyle().Height(9)
+	heightThing       = lipgloss.NewStyle().Height(20)
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
 	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString("Zen Cli").AlignHorizontal(lipgloss.Center)
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
@@ -69,19 +69,19 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 }
 
 type model struct {
-	state           sessionState
-	input           textinput.Model
-	list            list.Model
-	minute          int
-	selectedItem    string
-	timer           timer.Model
-	keymap          keymap
-	help            help.Model
-	err             error
-	width           int
-	height          int
-	generated_thing string
-	quitting        bool
+	state        sessionState
+	input        textinput.Model
+	list         list.Model
+	minute       int
+	selectedItem string
+	timer        timer.Model
+	keymap       keymap
+	help         help.Model
+	err          error
+	width        int
+	height       int
+	asciiArt     []string
+	quitting     bool
 }
 
 type keymap struct {
@@ -207,7 +207,8 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.selectedItem = string(selected)
 				m.timer = timer.NewWithInterval(time.Duration(m.minute)*time.Minute, time.Millisecond)
 				m.state = timerView
-				m.generated_thing = ascii_generator.GenerateTree(40, 20) + brownColor.Render(strings.Repeat("█", app_width-8))
+				m.asciiArt = ascii_generator.GenerateAsciiArt(40, 20).StringArray()
+				// +brownColor.Render(strings.Repeat("░", app_width-8))
 				m.keymap.start.SetEnabled(false)
 				return m, m.timer.Init()
 			}
@@ -251,15 +252,6 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) center(s string) string {
-	if len(s) >= m.width {
-		return s
-	}
-	n := m.width - len(s)
-	div := n / 2
-	return strings.Repeat(" ", div) + s
-}
-
 func (m model) helpView() string {
 	return "\n" + m.help.ShortHelpView([]key.Binding{
 		m.keymap.start,
@@ -296,11 +288,23 @@ func (m model) View() string {
 		view = fmt.Sprintf(
 			"%s \n\n %s",
 			titleStyle.Render(),
-			paddingleft.Render(fmt.Sprintf("%s\n\n%s\n\n%s", fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60), m.generated_thing, m.helpView())))
+			paddingleft.Render(fmt.Sprintf("%s\n\n%s\n\n%s", center(fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60), app_width-10),
+				"",
+				// m.generated_thing,
+				m.helpView())))
 
 	}
 
 	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, appStyle.Render(view))
+}
+
+func center(s string, total_width int) string {
+	if len(s) >= total_width {
+		return s
+	}
+	n := total_width - len(s)
+	div := n / 2
+	return strings.Repeat(" ", div) + s
 }
 
 func main() {
