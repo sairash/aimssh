@@ -36,8 +36,10 @@ var (
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
-	dotStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
-	subtleStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+
+	skyColor    = lipgloss.NewStyle().Background(lipgloss.Color("#6495ED"))
+	dotStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
+	subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 )
 
 type item string
@@ -234,9 +236,9 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		m.keymap.start.SetEnabled(!m.timer.Running())
 		return m, cmd
 
-	case timer.TimeoutMsg:
-		m.quitting = true
-		return m, tea.Quit
+	// case timer.TimeoutMsg:
+	// 	m.quitting = true
+	// 	return m, tea.Quit
 
 	case tea.KeyMsg:
 		switch {
@@ -353,6 +355,6 @@ func main() {
 			fmt.Printf("Error Occoured: %s \n", model.err.Error())
 			return
 		}
-		fmt.Printf("\nMinute: %d, Visual Option: %s\n", model.minute.Minutes(), model.selectedItem)
+		fmt.Printf("\nMinute: %f, Visual Option: %s\n", model.minute.Minutes(), model.selectedItem)
 	}
 }
