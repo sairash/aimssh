@@ -36,7 +36,6 @@ var (
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
-	brownColor        = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969"))
 	dotStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
 	subtleStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 )

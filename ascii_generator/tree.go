@@ -4,12 +4,18 @@ import (
 	"math"
 	"math/rand"
 	"strings"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 const (
 	branchColor = "\033[38;5;94m" // Brown-ish color for branches.
 	leafColor   = "\033[32m"      // Green color for leaves.
 	resetColor  = "\033[0m"       // Reset color.
+)
+
+var (
+	brownColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969"))
 )
 
 func initCanvas(width, height int) AsciiArt {
@@ -110,6 +116,7 @@ func (t AsciiArt) StringArray() []string {
 		}
 		ret_string_arr = append(ret_string_arr, str)
 	}
+	ret_string_arr = append(ret_string_arr, brownColor.Render(strings.Repeat("█", t.Width)))
 	return ret_string_arr
 }
 
