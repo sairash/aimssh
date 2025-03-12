@@ -72,7 +72,7 @@ type model struct {
 	state        sessionState
 	input        textinput.Model
 	list         list.Model
-	minute       int
+	minute       time.Duration
 	selectedItem string
 	timer        timer.Model
 	keymap       keymap
@@ -111,6 +111,7 @@ func initialModel() model {
 	l.Title = "Select a visual option: "
 	l.SetShowStatusBar(false)
 	l.Styles.Title = listTitleStyle
+	l.SetShowHelp(false)
 	// l.SetShowTitle(false)
 
 	return model{
@@ -185,7 +186,7 @@ func updateInput(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 					return m, tea.Quit
 				}
 
-				m.minute = min
+				m.minute = time.Duration(min) * time.Minute
 				m.state = listView
 				return m, nil
 			}
@@ -205,7 +206,7 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			if selected, ok := m.list.SelectedItem().(item); ok {
 				m.selectedItem = string(selected)
-				m.timer = timer.NewWithInterval(time.Duration(m.minute)*time.Minute, time.Millisecond)
+				m.timer = timer.NewWithInterval(m.minute, time.Millisecond)
 				m.state = timerView
 				m.asciiArt = ascii_generator.GenerateAsciiArt(40, 20).StringArray()
 				// +brownColor.Render(strings.Repeat("░", app_width-8))
@@ -243,7 +244,7 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.reset):
-			m.timer.Timeout = time.Duration(m.minute)
+			m.timer.Timeout = m.minute
 		case key.Matches(msg, m.keymap.start, m.keymap.stop):
 			return m, m.timer.Toggle()
 		}
@@ -259,6 +260,29 @@ func (m model) helpView() string {
 		m.keymap.reset,
 		m.keymap.quit,
 	})
+}
+
+func (m model) DrawAscii(a, b time.Duration) string {
+	str_ret := ""
+	n := len(m.asciiArt)
+	if n == 0 {
+		return ""
+	}
+
+	bucketWidth := 100.0 / float64(n)
+	index := int(percentageDifference(a, b) / bucketWidth)
+	if index >= n {
+		index = n - 1
+	}
+
+	for i := 0; i < n; i++ {
+		if i >= index {
+			str_ret += m.asciiArt[i]
+		}
+		str_ret += "\n"
+	}
+
+	return str_ret
 }
 
 func (m model) View() string {
@@ -289,7 +313,7 @@ func (m model) View() string {
 			"%s \n\n %s",
 			titleStyle.Render(),
 			paddingleft.Render(fmt.Sprintf("%s\n\n%s\n\n%s", center(fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60), app_width-10),
-				"",
+				m.DrawAscii(m.minute, m.timer.Timeout),
 				// m.generated_thing,
 				m.helpView())))
 
@@ -307,6 +331,15 @@ func center(s string, total_width int) string {
 	return strings.Repeat(" ", div) + s
 }
 
+func percentageDifference(a, b time.Duration) float64 {
+	if a == 0 && b == 0 {
+		return 0.0
+	}
+	// diff := math.Abs(float64(a - b))
+	// avg := (float64(a) + float64(b)) / 2.0
+	return ((b.Seconds()) / a.Seconds()) * 100
+}
+
 func main() {
 	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	m, err := p.Run()
@@ -320,6 +353,6 @@ func main() {
 			fmt.Printf("Error Occoured: %s \n", model.err.Error())
 			return
 		}
-		fmt.Printf("\nMinute: %d, Visual Option: %s\n", model.minute, model.selectedItem)
+		fmt.Printf("\nMinute: %d, Visual Option: %s\n", model.minute.Minutes(), model.selectedItem)
 	}
 }
