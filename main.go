@@ -30,7 +30,7 @@ const (
 
 var (
 	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width)
-	heightThing       = lipgloss.NewStyle().Height(20)
+	heightThing       = lipgloss.NewStyle().Height(22)
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
 	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString("Zen Cli").AlignHorizontal(lipgloss.Center)
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
@@ -110,7 +110,8 @@ func initialModel() model {
 	l.Title = "Select a visual option: "
 	l.SetShowStatusBar(false)
 	l.Styles.Title = listTitleStyle
-	l.SetShowHelp(false)
+	// l.SetShowHelp(false)
+	l.SetHeight(24)
 	// l.SetShowTitle(false)
 
 	return model{
@@ -311,7 +312,7 @@ func (m model) View() string {
 		view = fmt.Sprintf(
 			"%s \n\n %s",
 			titleStyle.Render(),
-			paddingleft.Render(fmt.Sprintf("%s\n\n%s\n\n%s", center(fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60), app_width-10),
+			paddingleft.Render(fmt.Sprintf("%s\n%s%s", center(fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60), app_width-10),
 				m.DrawAscii(m.minute, m.timer.Timeout),
 				// m.generated_thing,
 				m.helpView())))

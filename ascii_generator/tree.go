@@ -111,9 +111,9 @@ func (t AsciiArt) StringArray() []string {
 				str += string(cell.Ch)
 			}
 		}
-		if str == strings.Repeat(" ", t.Width) {
-			continue
-		}
+		// if str == strings.Repeat(" ", t.Width) {
+		// 	continue
+		// }
 		ret_string_arr = append(ret_string_arr, str)
 	}
 	ret_string_arr = append(ret_string_arr, brownColor.Render(strings.Repeat("█", t.Width)))
