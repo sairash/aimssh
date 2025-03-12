@@ -116,7 +116,7 @@ func (t AsciiArt) StringArray() []string {
 		// }
 		ret_string_arr = append(ret_string_arr, str)
 	}
-	ret_string_arr = append(ret_string_arr, brownColor.Render(strings.Repeat("█", t.Width)))
+	ret_string_arr = append(ret_string_arr, brownColor.Render(strings.Repeat("#", t.Width)))
 	return ret_string_arr
 }
 
