@@ -32,8 +32,8 @@ type branchParams struct {
 
 type Tree struct {
 	Canvas        [][]Cell
-	Width         int
-	Height        int
+	width         int
+	height        int
 	branchesQueue []branchParams
 	currentLevel  int
 	totalLevels   int
@@ -44,8 +44,8 @@ type Tree struct {
 
 func initCanvas(width, height int) Tree {
 	t := Tree{
-		Height: height,
-		Width:  width,
+		height: height,
+		width:  width,
 		dirty:  true,
 	}
 	t.Canvas = make([][]Cell, height)
@@ -68,7 +68,7 @@ func (t *Tree) drawLine(x0, y0, x1, y1 float64, ch rune, col string) {
 		y := y0 + dy*float64(i)/float64(steps)
 		ix := int(math.Round(x))
 		iy := int(math.Round(y))
-		if ix >= 0 && ix < t.Width && iy >= 0 && iy < t.Height {
+		if ix >= 0 && ix < t.width && iy >= 0 && iy < t.height {
 			// Only mark dirty if cell actually changes
 			if t.Canvas[iy][ix].Ch != ch || t.Canvas[iy][ix].Color != col {
 				t.Canvas[iy][ix] = Cell{ch, col}
@@ -110,7 +110,7 @@ func (t *Tree) Next(percentage int) bool {
 		for _, bp := range t.branchesQueue {
 			if bp.depth == 0 || bp.length < 1 {
 				ix, iy := int(math.Round(bp.x)), int(math.Round(bp.y))
-				if ix >= 0 && ix < t.Width && iy >= 0 && iy < t.Height {
+				if ix >= 0 && ix < t.width && iy >= 0 && iy < t.height {
 					// Only mark dirty if cell changes
 					if t.Canvas[iy][ix].Ch != '#' || t.Canvas[iy][ix].Color != leafColor {
 						t.Canvas[iy][ix] = Cell{'#', leafColor}
@@ -175,11 +175,11 @@ func (t *Tree) StringPrint() string {
 	}
 
 	var builder strings.Builder
-	builder.Grow(t.Height * (t.Width + 1)) // Pre-allocate memory
+	builder.Grow(t.height * (t.width + 1)) // Pre-allocate memory
 
-	for i := 0; i < t.Height; i++ {
-		line := make([]byte, 0, t.Width)
-		for j := 0; j < t.Width; j++ {
+	for i := 0; i < t.height; i++ {
+		line := make([]byte, 0, t.width)
+		for j := 0; j < t.width; j++ {
 			cell := t.Canvas[i][j]
 			if cell.Color != "" {
 				line = append(line, cell.Color...)
@@ -200,7 +200,15 @@ func (t *Tree) StringPrint() string {
 
 func (t *Tree) NextAndString(percent int) string {
 	t.Next(percent)
-	return t.StringPrint()
+	return t.StringPrint() + brownColor.Render(strings.Repeat("#", t.width+2)) + "\n"
+}
+
+func (t *Tree) Width() int {
+	return t.width
+}
+
+func (t *Tree) Height() int {
+	return t.height
 }
 
 func GenerateTree(width, height int) *Tree {
