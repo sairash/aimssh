@@ -32,7 +32,7 @@ var (
 	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width)
 	heightThing       = lipgloss.NewStyle().Height(22)
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
-	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(center("Zen Cli", app_width-4)).AlignHorizontal(lipgloss.Center)
+	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(center("POMOSSH", app_width-4)).AlignHorizontal(lipgloss.Center)
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
@@ -103,9 +103,7 @@ func initialModel() model {
 	items := []list.Item{
 		item("None"),
 		item("Tree"),
-		item("Tomato"),
 		item("Coffee"),
-		item("Carrot"),
 	}
 
 	l := list.New(items, itemDelegate{}, 30, 11)
