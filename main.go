@@ -32,7 +32,7 @@ var (
 	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width)
 	heightThing       = lipgloss.NewStyle().Height(22)
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
-	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString("Zen Cli").AlignHorizontal(lipgloss.Center)
+	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(center("Zen Cli", app_width-4)).AlignHorizontal(lipgloss.Center)
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
@@ -81,7 +81,7 @@ type model struct {
 	err          error
 	width        int
 	height       int
-	asciiArt     []string
+	asciiArt     ascii_generator.AsciiArt
 	quitting     bool
 }
 
@@ -132,7 +132,7 @@ func initialModel() model {
 			),
 			reset: key.NewBinding(
 				key.WithKeys("r"),
-				key.WithHelp("r", "reset"),
+				key.WithHelp("r", "restart"),
 			),
 			quit: key.NewBinding(
 				key.WithKeys("q", "ctrl+c"),
@@ -210,7 +210,7 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.selectedItem = string(selected)
 				m.timer = timer.NewWithInterval(m.minute, time.Millisecond)
 				m.state = timerView
-				m.asciiArt = ascii_generator.GenerateAsciiArt(40, 20).StringArray()
+				m.asciiArt = ascii_generator.GenerateTree(40, 20)
 				// +brownColor.Render(strings.Repeat("░", app_width-8))
 				m.keymap.start.SetEnabled(false)
 				return m, m.timer.Init()
@@ -246,7 +246,9 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.reset):
+			m.asciiArt = ascii_generator.GenerateTree(40, 20)
 			m.timer.Timeout = m.minute
+			return m, m.timer.Start()
 		case key.Matches(msg, m.keymap.start, m.keymap.stop):
 			return m, m.timer.Toggle()
 		}
@@ -265,26 +267,11 @@ func (m model) helpView() string {
 }
 
 func (m model) DrawAscii(a, b time.Duration) string {
-	str_ret := ""
-	n := len(m.asciiArt)
+	n := m.asciiArt.Height()
 	if n == 0 {
 		return ""
 	}
-
-	bucketWidth := 100.0 / float64(n)
-	index := int(percentageDifference(a, b) / bucketWidth)
-	if index >= n {
-		index = n - 1
-	}
-
-	for i := 0; i < n; i++ {
-		if i >= index {
-			str_ret += m.asciiArt[i]
-		}
-		str_ret += "\n"
-	}
-
-	return str_ret
+	return m.asciiArt.NextAndString(int(percentageDifference(a, b)))
 }
 
 func (m model) View() string {
@@ -337,9 +324,8 @@ func percentageDifference(a, b time.Duration) float64 {
 	if a == 0 && b == 0 {
 		return 0.0
 	}
-	// diff := math.Abs(float64(a - b))
-	// avg := (float64(a) + float64(b)) / 2.0
-	return ((b.Seconds()) / a.Seconds()) * 100
+
+	return ((a.Seconds() - b.Seconds()) / a.Seconds()) * 100
 }
 
 func main() {
