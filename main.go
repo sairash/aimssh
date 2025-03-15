@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 	"zencli/ascii_generator"
+	"zencli/helper"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -30,9 +31,9 @@ const (
 
 var (
 	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width)
-	heightThing       = lipgloss.NewStyle().Height(22)
+	heightThing       = lipgloss.NewStyle().Height(23)
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
-	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(center("POMOSSH", app_width-4)).AlignHorizontal(lipgloss.Center)
+	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(helper.Center("POMOSSH", app_width-4)).AlignHorizontal(lipgloss.Center)
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
@@ -72,6 +73,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 type model struct {
 	state        sessionState
 	input        textinput.Model
+	workingon    textinput.Model
 	list         list.Model
 	minute       time.Duration
 	selectedItem string
@@ -81,6 +83,7 @@ type model struct {
 	err          error
 	width        int
 	height       int
+	session      string
 	asciiArt     ascii_generator.AsciiArt
 	quitting     bool
 }
@@ -100,6 +103,12 @@ func initialModel() model {
 	ti.Width = 30
 	ti.Prompt = "- "
 
+	woI := textinput.New()
+	woI.Placeholder = "Work"
+	woI.CharLimit = 50
+	woI.Width = 30
+	woI.Prompt = "- "
+
 	items := []list.Item{
 		item("None"),
 		item("Tree"),
@@ -111,14 +120,16 @@ func initialModel() model {
 	l.SetShowStatusBar(false)
 	l.Styles.Title = listTitleStyle
 	// l.SetShowHelp(false)
-	l.SetHeight(24)
+	l.SetHeight(25)
 	// l.SetShowTitle(false)
 
 	return model{
-		state: inputView,
-		input: ti,
-		list:  l,
-		err:   nil,
+		state:     inputView,
+		input:     ti,
+		workingon: woI,
+		list:      l,
+		err:       nil,
+		session:   "Work",
 		keymap: keymap{
 			start: key.NewBinding(
 				key.WithKeys("s"),
@@ -176,25 +187,46 @@ func updateInput(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			if m.input.Value() != "" {
+			if m.input.Focused() {
+				if m.input.Value() != "" {
 
-				min, err := strconv.Atoi(m.input.Value())
+					min, err := strconv.Atoi(m.input.Value())
 
-				if err != nil {
-					m.err = err
-					m.quitting = true
-					return m, tea.Quit
+					if err != nil {
+						m.err = err
+						m.quitting = true
+						return m, tea.Quit
+					}
+
+					m.minute = time.Duration(min) * time.Minute
+					m.input.Blur()
+					return m, m.workingon.Focus()
 				}
-
-				m.minute = time.Duration(min) * time.Minute
+			} else {
+				if m.workingon.Value() != "" {
+					m.session = m.workingon.Value()
+				}
 				m.state = listView
-				return m, nil
 			}
 		}
 	}
 
-	m.input, cmd = m.input.Update(msg)
+	if m.input.Focused() {
+		m.input, cmd = m.input.Update(msg)
+	} else {
+		m.workingon, cmd = m.workingon.Update(msg)
+	}
+
 	return m, cmd
+}
+
+func (m model) generate_ascii() ascii_generator.AsciiArt {
+	switch m.selectedItem {
+	case "Coffee":
+		return ascii_generator.GenerateCoffee()
+	default:
+		return ascii_generator.GenerateTree(40, 20)
+	}
 }
 
 func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
@@ -208,7 +240,7 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.selectedItem = string(selected)
 				m.timer = timer.NewWithInterval(m.minute, time.Millisecond)
 				m.state = timerView
-				m.asciiArt = ascii_generator.GenerateTree(40, 20)
+				m.asciiArt = m.generate_ascii()
 				// +brownColor.Render(strings.Repeat("░", app_width-8))
 				m.keymap.start.SetEnabled(false)
 				return m, m.timer.Init()
@@ -244,7 +276,7 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.reset):
-			m.asciiArt = ascii_generator.GenerateTree(40, 20)
+			m.asciiArt = m.generate_ascii()
 			m.timer.Timeout = m.minute
 			return m, m.timer.Start()
 		case key.Matches(msg, m.keymap.start, m.keymap.stop):
@@ -265,11 +297,15 @@ func (m model) helpView() string {
 }
 
 func (m model) DrawAscii(a, b time.Duration) string {
-	n := m.asciiArt.Height()
-	if n == 0 {
-		return ""
+	if m.selectedItem != "None" {
+		n := m.asciiArt.Height()
+		if n == 0 {
+			return ""
+		}
+		return m.asciiArt.NextAndString(int(percentageDifference(a, b)))
+
 	}
-	return m.asciiArt.NextAndString(int(percentageDifference(a, b)))
+	return strings.Repeat("\n", 21)
 }
 
 func (m model) View() string {
@@ -284,9 +320,15 @@ func (m model) View() string {
 			"%s \n\n%s",
 			titleStyle.Render(),
 			paddingleft.Render(
-				fmt.Sprintf("%s\n\n%s", heightThing.Render(fmt.Sprintf("%s \n\n%s", listTitleStyle.Render("Time in minute: "),
-					m.input.View(),
-				)),
+				fmt.Sprintf("%s\n\n%s",
+					heightThing.Render(
+						fmt.Sprintf("%s \n\n%s\n\n%s \n\n%s",
+							listTitleStyle.Render("Time in minute: "),
+							m.input.View(),
+							ascii_generator.BrownColor.Render("Session: "),
+							m.workingon.View(),
+						),
+					),
 					subtleStyle.Render("↩ Enter")+dotStyle+subtleStyle.Render("Ctrl + C"))))
 	case listView:
 		view = fmt.Sprintf(
@@ -299,23 +341,15 @@ func (m model) View() string {
 		view = fmt.Sprintf(
 			"%s \n\n %s",
 			titleStyle.Render(),
-			paddingleft.Render(fmt.Sprintf("%s\n%s%s", center(fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60), app_width-10),
+			paddingleft.Render(fmt.Sprintf("%s\n%s%s\n%s", helper.Center(fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60), app_width-10),
 				m.DrawAscii(m.minute, m.timer.Timeout),
+				helper.Center("Session: "+m.session, app_width-8),
 				// m.generated_thing,
 				m.helpView())))
 
 	}
 
 	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, appStyle.Render(view))
-}
-
-func center(s string, total_width int) string {
-	if len(s) >= total_width {
-		return s
-	}
-	n := total_width - len(s)
-	div := n / 2
-	return strings.Repeat(" ", div) + s
 }
 
 func percentageDifference(a, b time.Duration) float64 {
