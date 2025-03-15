@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	brownColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969"))
+	BrownColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969"))
 	cacheMutex sync.Mutex
 )
 
@@ -202,7 +202,7 @@ func (t *Tree) StringPrint() string {
 
 func (t *Tree) NextAndString(percent int) string {
 	t.Next(percent)
-	return t.StringPrint() + brownColor.Render(strings.Repeat("#", t.width+2)) + "\n"
+	return t.StringPrint() + BrownColor.Render(strings.Repeat("#", t.width+2)) + "\n"
 }
 
 func (t *Tree) Width() int {

@@ -5,5 +5,4 @@ type AsciiArt interface {
 	Height() int
 	Next(int) bool
 	NextAndString(int) string
-	StringPrint() string
 }
