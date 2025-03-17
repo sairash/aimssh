@@ -32,7 +32,7 @@ const (
 
 var (
 	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width).Background(lipgloss.Color("#1f1f2e"))
-	heightThing       = lipgloss.NewStyle().Height(23).Background(lipgloss.Color("#1f1f2e"))
+	heightThing       = lipgloss.NewStyle().Height(21).Background(lipgloss.Color("#1f1f2e"))
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
 	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(helper.Center("<尸ㄖ爪ㄖ 丂丂卄>", app_width+3)).AlignHorizontal(lipgloss.Center).Background(lipgloss.Color("#1f1f2e"))
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10).Background(lipgloss.Color("#1f1f2e"))
@@ -87,6 +87,7 @@ type model struct {
 	session      string
 	asciiArt     ascii_generator.AsciiArt
 	quitting     bool
+	timedOut     bool
 }
 
 type keymap struct {
@@ -94,6 +95,7 @@ type keymap struct {
 	stop  key.Binding
 	reset key.Binding
 	quit  key.Binding
+	new   key.Binding
 }
 
 func initialModel() model {
@@ -113,8 +115,8 @@ func initialModel() model {
 	woI.Prompt = "- "
 
 	items := []list.Item{
-		item("None"),
 		item("Tree"),
+		item("Flow"),
 		item("Coffee"),
 	}
 
@@ -123,7 +125,7 @@ func initialModel() model {
 	l.SetShowStatusBar(false)
 	l.Styles.Title = listTitleStyle
 	// l.SetShowHelp(false)
-	l.SetHeight(25)
+	l.SetHeight(23)
 	// l.SetShowTitle(false)
 
 	return model{
@@ -133,14 +135,15 @@ func initialModel() model {
 		list:      l,
 		err:       nil,
 		session:   "Work",
+		timedOut:  false,
 		keymap: keymap{
 			start: key.NewBinding(
-				key.WithKeys("s"),
-				key.WithHelp("s", "start"),
+				key.WithKeys(" ", "s"),
+				key.WithHelp("space", "start"),
 			),
 			stop: key.NewBinding(
-				key.WithKeys("s"),
-				key.WithHelp("s", "stop"),
+				key.WithKeys(" ", "s"),
+				key.WithHelp("space", "stop"),
 			),
 			reset: key.NewBinding(
 				key.WithKeys("r"),
@@ -149,6 +152,10 @@ func initialModel() model {
 			quit: key.NewBinding(
 				key.WithKeys("q", "ctrl+c"),
 				key.WithHelp("q", "quit"),
+			),
+			new: key.NewBinding(
+				key.WithKeys("n"),
+				key.WithHelp("n", "new"),
 			),
 		},
 		help: help.New(),
@@ -228,9 +235,9 @@ func (m model) generate_ascii() ascii_generator.AsciiArt {
 	case "Coffee":
 		return ascii_generator.GenerateCoffee()
 	case "Tree":
-		return ascii_generator.GenerateTree(40, 20)
+		return ascii_generator.GenerateTree(40, 18)
 	default:
-		return ascii_generator.GenerateRow(40, 20)
+		return ascii_generator.GenerateRow(40, 17)
 	}
 }
 
@@ -258,15 +265,27 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+func format(n int) string {
+	var b [2]byte
+	if n < 10 {
+		b[0], b[1] = '0', byte(n)+'0'
+	} else {
+		b[0], b[1] = byte(n/10)+'0', byte(n%10)+'0'
+	}
+	return string(b[:])
+}
+
 func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case timer.TickMsg:
 		var cmd tea.Cmd
 		m.timer, cmd = m.timer.Update(msg)
 		return m, cmd
-
 	case timer.TimeoutMsg:
+		m.timedOut = true
 		beeep.Alert("Timer Ended", "The timer has ended.", "assets/logo.png")
+		// return m, tea.SetWindowTitle("Done")
+
 	case timer.StartStopMsg:
 		var cmd tea.Cmd
 		m.timer, cmd = m.timer.Update(msg)
@@ -281,13 +300,22 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keymap.quit):
+			m.timedOut = false
 			m.quitting = true
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.reset):
+			m.timedOut = false
 			m.asciiArt = m.generate_ascii()
 			m.timer.Timeout = m.minute
 			beeep.Alert("Timer Restarted", fmt.Sprintf("Pomodoro timer set for %d minutes.", int(m.timer.Timeout.Minutes())), "assets/logo.png")
 			return m, m.timer.Start()
+		case key.Matches(msg, m.keymap.new):
+			m.timedOut = false
+			m.state = inputView
+			m.workingon.Blur()
+			m.input.Focus()
+			m.timer.Stop()
+			return m, nil
 		case key.Matches(msg, m.keymap.start, m.keymap.stop):
 			return m, m.timer.Toggle()
 		}
@@ -302,6 +330,7 @@ func (m model) helpView() string {
 		m.keymap.stop,
 		m.keymap.reset,
 		m.keymap.quit,
+		m.keymap.new,
 	})
 }
 
@@ -310,7 +339,7 @@ func (m model) DrawAscii(a, b time.Duration) string {
 	if n == 0 {
 		return ""
 	}
-	if m.selectedItem != "None" {
+	if m.selectedItem != "Flow" {
 		return m.asciiArt.NextAndString(int(percentageDifference(a, b)))
 	}
 	return "\n" + greenColor.Render(m.asciiArt.NextAndString(0)) + "\n"
@@ -358,10 +387,14 @@ func (m model) View() string {
 			m.list.View(),
 		)
 	case timerView:
+		text := "Session Ended, Press (r) or (n)"
+		if !m.timedOut {
+			text = format(int(m.timer.Timeout.Minutes())) + " : " + format(int(m.timer.Timeout.Seconds())%60)
+		}
 		view = fmt.Sprintf(
 			"%s \n\n %s",
 			titleStyle.Render(),
-			paddingleft.Render(fmt.Sprintf("%s\n%s%s\n%s", helper.Center(fmt.Sprintf("%d : %d", int(m.timer.Timeout.Minutes()), int(m.timer.Timeout.Seconds())%60), app_width-10),
+			paddingleft.Render(fmt.Sprintf("%s\n%s%s\n%s", helper.Center(text, app_width-10),
 				m.DrawAscii(m.minute, m.timer.Timeout),
 				helper.Center("Session: "+m.session, app_width-8),
 				// m.generated_thing,
@@ -394,6 +427,6 @@ func main() {
 			fmt.Printf("Error Occoured: %s \n", model.err.Error())
 			return
 		}
-		fmt.Printf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("丂丂卄 尸ㄖ爪ㄖ"), greenColor.Render("https://github.com/sairash/pomossh"), greenColor.Render("https://sairashgautam.com.np/"))
+		fmt.Printf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<尸ㄖ爪ㄖ 丂丂卄>"), greenColor.Render("https://github.com/sairash/pomossh"), greenColor.Render("https://sairashgautam.com.np/"))
 	}
 }

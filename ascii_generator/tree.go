@@ -15,6 +15,7 @@ const (
 	branchColor = "\033[38;5;94m"
 	leafColor   = "\033[32m"
 	resetColor  = "\033[0m\033[48;2;31;31;46m"
+	skipHeight  = 2
 )
 
 var (
@@ -53,10 +54,17 @@ func initCanvas(width, height int) Tree {
 	t.Canvas = make([][]Cell, height)
 	for i := 0; i < height; i++ {
 		t.Canvas[i] = make([]Cell, width)
+		append_char := ' '
+		color := ""
+		if i == t.height-skipHeight {
+			append_char = '#'
+			color = branchColor
+		}
 		for j := 0; j < width; j++ {
-			t.Canvas[i][j] = Cell{' ', ""}
+			t.Canvas[i][j] = Cell{append_char, color}
 		}
 	}
+
 	return t
 }
 
@@ -70,7 +78,8 @@ func (t *Tree) drawLine(x0, y0, x1, y1 float64, ch rune, col string) {
 		y := y0 + dy*float64(i)/float64(steps)
 		ix := int(math.Round(x))
 		iy := int(math.Round(y))
-		if ix >= 0 && ix < t.width && iy >= 0 && iy < t.height {
+
+		if ix >= 0 && ix < t.width && iy >= 0 && iy < t.height-skipHeight {
 			// Only mark dirty if cell actually changes
 			if t.Canvas[iy][ix].Ch != ch || t.Canvas[iy][ix].Color != col {
 				t.Canvas[iy][ix] = Cell{ch, col}
@@ -202,7 +211,7 @@ func (t *Tree) StringPrint() string {
 
 func (t *Tree) NextAndString(percent int) string {
 	t.Next(percent)
-	return t.StringPrint() + BrownColor.Render(strings.Repeat("卄", 21)) + "\n"
+	return t.StringPrint() + "\n"
 }
 
 func (t *Tree) Width() int {

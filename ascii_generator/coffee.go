@@ -109,7 +109,7 @@ func (c *Coffee) Next(percent int) bool {
 		total_body += cup_body[k][0] + coffee_color.Render(string(v)) + cup_body[k][1] + "\n"
 	}
 	total_body += cup_bottom
-	c.cachedBottom = total_body + "\n\n\n\n"
+	c.cachedBottom = total_body + "\n\n\n"
 	c.prevPercent = percent
 
 	return true
@@ -126,7 +126,7 @@ func (c *Coffee) steam() int {
 	for _, v := range steam_animation[c.curFrame] {
 		top += helper.Center(v, 40) + "\n"
 	}
-	c.cachedTop = "\n\n\n\n" + top
+	c.cachedTop = "\n\n\n" + top
 
 	return c.curFrame
 }
