@@ -1,11 +1,11 @@
-// refrence from: https://www.youtube.com/watch?v=I5Q03I-ybXQ
+// inspiration from: https://www.youtube.com/watch?v=I5Q03I-ybXQ
 
 package ascii_generator
 
 import (
 	"math"
+	"pomossh/helper"
 	"time"
-	"zencli/helper"
 
 	"github.com/charmbracelet/lipgloss"
 )

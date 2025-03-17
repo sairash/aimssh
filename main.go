@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"pomossh/ascii_generator"
+	"pomossh/helper"
 	"strconv"
 	"strings"
 	"time"
-	"zencli/ascii_generator"
-	"zencli/helper"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -17,6 +17,7 @@ import (
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/gen2brain/beeep"
 )
 
 type sessionState int
@@ -30,17 +31,17 @@ const (
 )
 
 var (
-	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width)
-	heightThing       = lipgloss.NewStyle().Height(23)
+	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width).Background(lipgloss.Color("#1f1f2e"))
+	heightThing       = lipgloss.NewStyle().Height(23).Background(lipgloss.Color("#1f1f2e"))
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
-	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(helper.Center("POMOSSH", app_width-4)).AlignHorizontal(lipgloss.Center)
-	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
+	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(helper.Center("<尸ㄖ爪ㄖ 丂丂卄>", app_width+3)).AlignHorizontal(lipgloss.Center).Background(lipgloss.Color("#1f1f2e"))
+	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10).Background(lipgloss.Color("#1f1f2e"))
+	itemStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("#1f1f2e"))
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E")).Background(lipgloss.Color("#1f1f2e"))
 
-	skyColor    = lipgloss.NewStyle().Background(lipgloss.Color("#6495ED"))
-	dotStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
-	subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+	greenColor  = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(2).Faint(true).Background(lipgloss.Color("#1f1f2e"))
+	dotStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Background(lipgloss.Color("#1f1f2e")).Render(dotChar)
+	subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Background(lipgloss.Color("#1f1f2e"))
 )
 
 type item string
@@ -97,6 +98,7 @@ type keymap struct {
 
 func initialModel() model {
 	ti := textinput.New()
+	ti.PlaceholderStyle = lipgloss.NewStyle().Background(lipgloss.Color("#1f1f2e")).Faint(true)
 	ti.Placeholder = "10"
 	ti.Focus()
 	ti.CharLimit = 50
@@ -104,6 +106,7 @@ func initialModel() model {
 	ti.Prompt = "- "
 
 	woI := textinput.New()
+	woI.PlaceholderStyle = lipgloss.NewStyle().Background(lipgloss.Color("#1f1f2e")).Faint(true)
 	woI.Placeholder = "Work"
 	woI.CharLimit = 50
 	woI.Width = 30
@@ -224,8 +227,10 @@ func (m model) generate_ascii() ascii_generator.AsciiArt {
 	switch m.selectedItem {
 	case "Coffee":
 		return ascii_generator.GenerateCoffee()
-	default:
+	case "Tree":
 		return ascii_generator.GenerateTree(40, 20)
+	default:
+		return ascii_generator.GenerateRow(40, 20)
 	}
 }
 
@@ -243,6 +248,7 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.asciiArt = m.generate_ascii()
 				// +brownColor.Render(strings.Repeat("░", app_width-8))
 				m.keymap.start.SetEnabled(false)
+				beeep.Alert("Timer Start", fmt.Sprintf("Pomodoro timer set for %d minutes.", int(m.timer.Timeout.Minutes())), "assets/logo.png")
 				return m, m.timer.Init()
 			}
 		}
@@ -259,6 +265,8 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		m.timer, cmd = m.timer.Update(msg)
 		return m, cmd
 
+	case timer.TimeoutMsg:
+		beeep.Alert("Timer Ended", "The timer has ended.", "assets/logo.png")
 	case timer.StartStopMsg:
 		var cmd tea.Cmd
 		m.timer, cmd = m.timer.Update(msg)
@@ -278,6 +286,7 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keymap.reset):
 			m.asciiArt = m.generate_ascii()
 			m.timer.Timeout = m.minute
+			beeep.Alert("Timer Restarted", fmt.Sprintf("Pomodoro timer set for %d minutes.", int(m.timer.Timeout.Minutes())), "assets/logo.png")
 			return m, m.timer.Start()
 		case key.Matches(msg, m.keymap.start, m.keymap.stop):
 			return m, m.timer.Toggle()
@@ -297,15 +306,26 @@ func (m model) helpView() string {
 }
 
 func (m model) DrawAscii(a, b time.Duration) string {
-	if m.selectedItem != "None" {
-		n := m.asciiArt.Height()
-		if n == 0 {
-			return ""
-		}
-		return m.asciiArt.NextAndString(int(percentageDifference(a, b)))
-
+	n := m.asciiArt.Height()
+	if n == 0 {
+		return ""
 	}
-	return strings.Repeat("\n", 21)
+	if m.selectedItem != "None" {
+		return m.asciiArt.NextAndString(int(percentageDifference(a, b)))
+	}
+	return "\n" + greenColor.Render(m.asciiArt.NextAndString(0)) + "\n"
+	// camel := `
+
+	// 		  _v   ,,
+	// 		 /'|   &&.
+	// 		 '-\'-&&&&&.
+	// 			 \&&&&&&&\
+	// 			 &&#""&& \
+	// 			 / /   |\  x
+	// 			/ /    / /
+
+	// `
+	// return ascii_generator.BrownColor.Render(camel) + "\n"
 }
 
 func (m model) View() string {
@@ -323,9 +343,9 @@ func (m model) View() string {
 				fmt.Sprintf("%s\n\n%s",
 					heightThing.Render(
 						fmt.Sprintf("%s \n\n%s\n\n%s \n\n%s",
-							listTitleStyle.Render("Time in minute: "),
+							listTitleStyle.Render("Time in minute: *"),
 							m.input.View(),
-							ascii_generator.BrownColor.Render("Session: "),
+							ascii_generator.BrownColor.Render("Session:"),
 							m.workingon.View(),
 						),
 					),
@@ -361,6 +381,7 @@ func percentageDifference(a, b time.Duration) float64 {
 }
 
 func main() {
+
 	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	m, err := p.Run()
 	if err != nil {
@@ -373,6 +394,6 @@ func main() {
 			fmt.Printf("Error Occoured: %s \n", model.err.Error())
 			return
 		}
-		fmt.Printf("\nMinute: %f, Visual Option: %s\n", model.minute.Minutes(), model.selectedItem)
+		fmt.Printf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("丂丂卄 尸ㄖ爪ㄖ"), greenColor.Render("https://github.com/sairash/pomossh"), greenColor.Render("https://sairashgautam.com.np/"))
 	}
 }

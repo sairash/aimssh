@@ -1,4 +1,4 @@
-// refrence: https://gitlab.com/jallbrit/cbonsai
+// inspiration: https://gitlab.com/jallbrit/cbonsai
 
 package ascii_generator
 
@@ -14,11 +14,11 @@ import (
 const (
 	branchColor = "\033[38;5;94m"
 	leafColor   = "\033[32m"
-	resetColor  = "\033[0m"
+	resetColor  = "\033[0m\033[48;2;31;31;46m"
 )
 
 var (
-	BrownColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969"))
+	BrownColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969")).Background(lipgloss.Color("#1f1f2e"))
 	cacheMutex sync.Mutex
 )
 
@@ -202,7 +202,7 @@ func (t *Tree) StringPrint() string {
 
 func (t *Tree) NextAndString(percent int) string {
 	t.Next(percent)
-	return t.StringPrint() + BrownColor.Render(strings.Repeat("#", t.width+2)) + "\n"
+	return t.StringPrint() + BrownColor.Render(strings.Repeat("卄", 21)) + "\n"
 }
 
 func (t *Tree) Width() int {
