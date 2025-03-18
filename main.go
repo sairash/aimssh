@@ -1,13 +1,19 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"flag"
 	"fmt"
 	"io"
+	"net"
 	"os"
+	"os/signal"
 	"pomossh/ascii_generator"
 	"pomossh/helper"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -17,6 +23,12 @@ import (
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/log"
+	"github.com/charmbracelet/ssh"
+	"github.com/charmbracelet/wish"
+	"github.com/charmbracelet/wish/activeterm"
+	"github.com/charmbracelet/wish/bubbletea"
+	"github.com/charmbracelet/wish/logging"
 	"github.com/gen2brain/beeep"
 )
 
@@ -28,6 +40,8 @@ const (
 	inputView sessionState = iota
 	listView
 	timerView
+	host = "localhost"
+	port = "13234"
 )
 
 var (
@@ -42,6 +56,8 @@ var (
 	greenColor  = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(2).Faint(true).Background(lipgloss.Color("#1f1f2e"))
 	dotStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Background(lipgloss.Color("#1f1f2e")).Render(dotChar)
 	subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Background(lipgloss.Color("#1f1f2e"))
+
+	run_as_ssh bool
 )
 
 type item string
@@ -413,7 +429,52 @@ func percentageDifference(a, b time.Duration) float64 {
 	return ((a.Seconds() - b.Seconds()) / a.Seconds()) * 100
 }
 
+func wish_server() {
+	s, err := wish.NewServer(
+		wish.WithAddress(net.JoinHostPort(host, port)),
+		wish.WithHostKeyPath(".ssh/id_ed25519"),
+		wish.WithMiddleware(
+			bubbletea.Middleware(teaHandler),
+			activeterm.Middleware(),
+			logging.Middleware(),
+		),
+	)
+	if err != nil {
+		log.Error("Could not start server", "error", err)
+	}
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	log.Info("Starting SSH server", "host", host, "port", port)
+	go func() {
+		if err = s.ListenAndServe(); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
+			log.Error("Could not start server", "error", err)
+			done <- nil
+		}
+	}()
+
+	<-done
+	log.Info("Stopping SSH server")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer func() { cancel() }()
+	if err := s.Shutdown(ctx); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
+		log.Error("Could not stop server", "error", err)
+	}
+}
+
+func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
+	return initialModel(), []tea.ProgramOption{tea.WithAltScreen()}
+}
+
 func main() {
+
+	flag.BoolVar(&run_as_ssh, "ssh", false, "run as ssh server?")
+	flag.Parse()
+
+	if run_as_ssh {
+		wish_server()
+		return
+	}
 
 	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	m, err := p.Run()
