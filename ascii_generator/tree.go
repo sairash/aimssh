@@ -5,6 +5,7 @@ package ascii_generator
 import (
 	"math"
 	"math/rand"
+	"pomossh/helper"
 	"strings"
 	"sync"
 
@@ -12,10 +13,18 @@ import (
 )
 
 const (
-	branchColor = "\033[38;5;94m"
-	leafColor   = "\033[32m"
-	resetColor  = "\033[0m\033[48;2;31;31;46m"
-	skipHeight  = 2
+	branchColor     = "\033[38;5;94m"
+	orangeColor     = "\033[38;5;208m"
+	lightSkinColor  = "\033[38;5;223m"
+	whiteColor      = "\033[38;5;15m"
+	darkRedColor    = "\033[38;5;124m"
+	lightBrownColor = "\033[38;5;137m"
+	skyblueColor    = "\033[38;5;69m"
+	navyBlueColor   = "\033[38;5;4m"
+	deepBlueColor   = "\033[38;5;39m"
+	leafColor       = "\033[32m"
+	resetColor      = "\033[0m\033[48;2;31;31;46m"
+	skipHeight      = 2
 )
 
 var (
@@ -23,18 +32,13 @@ var (
 	cacheMutex sync.Mutex
 )
 
-type Cell struct {
-	Ch    rune
-	Color string
-}
-
 type branchParams struct {
 	x, y, angle, length float64
 	depth               int
 }
 
 type Tree struct {
-	Canvas        [][]Cell
+	Canvas        [][]helper.Cell
 	width         int
 	height        int
 	branchesQueue []branchParams
@@ -51,9 +55,9 @@ func initCanvas(width, height int) Tree {
 		width:  width,
 		dirty:  true,
 	}
-	t.Canvas = make([][]Cell, height)
+	t.Canvas = make([][]helper.Cell, height)
 	for i := 0; i < height; i++ {
-		t.Canvas[i] = make([]Cell, width)
+		t.Canvas[i] = make([]helper.Cell, width)
 		append_char := ' '
 		color := ""
 		if i == t.height-skipHeight {
@@ -61,7 +65,7 @@ func initCanvas(width, height int) Tree {
 			color = branchColor
 		}
 		for j := 0; j < width; j++ {
-			t.Canvas[i][j] = Cell{append_char, color}
+			t.Canvas[i][j] = helper.Cell{Ch: append_char, Color: color}
 		}
 	}
 
@@ -82,7 +86,7 @@ func (t *Tree) drawLine(x0, y0, x1, y1 float64, ch rune, col string) {
 		if ix >= 0 && ix < t.width && iy >= 0 && iy < t.height-skipHeight {
 			// Only mark dirty if cell actually changes
 			if t.Canvas[iy][ix].Ch != ch || t.Canvas[iy][ix].Color != col {
-				t.Canvas[iy][ix] = Cell{ch, col}
+				t.Canvas[iy][ix] = helper.Cell{Ch: ch, Color: col}
 				t.dirty = true
 			}
 		}
@@ -124,7 +128,7 @@ func (t *Tree) Next(percentage int) bool {
 				if ix >= 0 && ix < t.width && iy >= 0 && iy < t.height {
 					// Only mark dirty if cell changes
 					if t.Canvas[iy][ix].Ch != '#' || t.Canvas[iy][ix].Color != leafColor {
-						t.Canvas[iy][ix] = Cell{'#', leafColor}
+						t.Canvas[iy][ix] = helper.Cell{Ch: '#', Color: leafColor}
 						t.dirty = true
 					}
 				}

@@ -11,7 +11,7 @@ import (
 
 type Row struct {
 	cached                             string
-	background                         string
+	background                         [][]helper.Cell
 	cur_animation, x, y, width, height int
 	mu                                 sync.RWMutex
 }
@@ -23,6 +23,34 @@ var (
 		"                o \n              _  V  _ \n_ __ _ ___ _( _ / ____ `)\n              _/ ~",
 		"                 o  \n              _  (/ , _ \n_ __   _ ___( _  / ____ `)\n            __ ~/ ",
 		"                 o / \n               _ </ , _ \n_  _ _ _ _ __( _ / ____ `)\n            ___ /",
+	}
+
+	row_animation_cell = [][][]helper.Cell{
+		{
+			{{Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: 'o', Color: lightSkinColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '|', Color: lightBrownColor}},
+			{{Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '\\', Color: lightSkinColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '|', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}},
+			{{Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '(', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '\\', Color: lightSkinColor}, {Ch: '|', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '`', Color: lightBrownColor}, {Ch: ')', Color: lightBrownColor}}},
+		{
+			{{Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: 'o', Color: lightSkinColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightSkinColor}},
+			{{Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '\\', Color: lightSkinColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '/', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}},
+			{{Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '(', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '\\', Color: lightSkinColor}, {Ch: '/', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '`', Color: lightBrownColor}, {Ch: ')', Color: lightBrownColor}},
+			{{Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '/', Color: lightBrownColor}, {Ch: '_', Color: navyBlueColor}}},
+		{
+			{{Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: 'o', Color: lightSkinColor}, {Ch: ' ', Color: lightBrownColor}},
+			{{Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: 'V', Color: lightSkinColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}},
+			{{Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '(', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '/', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '`', Color: lightBrownColor}, {Ch: ')', Color: lightBrownColor}},
+			{{Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '/', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '~', Color: navyBlueColor}}},
+		{
+			{{Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: 'o', Color: lightSkinColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}},
+			{{Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '(', Color: lightSkinColor}, {Ch: '/', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ',', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}},
+			{{Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '(', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '/', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '`', Color: lightBrownColor}, {Ch: ')', Color: lightBrownColor}},
+			{{Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '~', Color: navyBlueColor}, {Ch: '/', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}}},
+		{
+			{{Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: 'o', Color: lightSkinColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '/', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}},
+			{{Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '<', Color: lightSkinColor}, {Ch: '/', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: ',', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}},
+			{{Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '(', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '/', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: '_', Color: lightBrownColor}, {Ch: ' ', Color: lightBrownColor}, {Ch: '`', Color: lightBrownColor}, {Ch: ')', Color: lightBrownColor}},
+			{{Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: '_', Color: navyBlueColor}, {Ch: ' ', Color: navyBlueColor}, {Ch: '/', Color: lightBrownColor}},
+		},
 	}
 )
 
@@ -47,20 +75,31 @@ func (r *Row) nextFrame() int {
 	return r.cur_animation
 }
 
+func randomBlue() string {
+	x := rand.Float32()
+	if x >= 0.9 {
+		return navyBlueColor
+	} else if x > 0.6 {
+		return deepBlueColor
+	}
+	return skyblueColor
+}
+
 func (r *Row) backgroundCreator() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.background = ""
+	r.background = [][]helper.Cell{}
 	for i := 0; i < r.height; i++ {
+		cell := []helper.Cell{}
 		for j := 0; j < r.width; j++ {
-			if rand.Float32() > 0.9 {
-				r.background += "_"
+			if rand.Float32() > 0.92 {
+				cell = append(cell, helper.Cell{Ch: '_', Color: randomBlue()})
 			} else {
-				r.background += " "
+				cell = append(cell, helper.Cell{Ch: ' '})
 			}
 		}
-		r.background += "\n"
+		r.background = append(r.background, cell)
 	}
 }
 
@@ -86,7 +125,7 @@ func GenerateRow(width, height int) *Row {
 		t := time.NewTicker(200 * time.Millisecond)
 		for {
 			r.mu.RLock()
-			r.cached = helper.LayerString(r.background, row_animation[r.nextFrame()], r.x, r.y, true)
+			r.cached = helper.LayerCanvas(r.background, row_animation_cell[r.nextFrame()], r.x, r.y, true)
 			r.mu.RUnlock()
 			<-t.C
 			if r.x > r.width {

@@ -58,6 +58,7 @@ var (
 	subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Background(lipgloss.Color("#1f1f2e"))
 
 	run_as_ssh bool
+	end_info   = fmt.Sprintf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<尸ㄖ爪ㄖ 丂丂卄>"), greenColor.Render("https://github.com/sairash/pomossh"), greenColor.Render("https://sairashgautam.com.np/"))
 )
 
 type item string
@@ -437,6 +438,13 @@ func wish_server() {
 			bubbletea.Middleware(teaHandler),
 			activeterm.Middleware(),
 			logging.Middleware(),
+			// After Bubbletea quit.
+			func(next ssh.Handler) ssh.Handler {
+				return func(sess ssh.Session) {
+					wish.Println(sess, end_info)
+					next(sess)
+				}
+			},
 		),
 	)
 	if err != nil {
@@ -488,6 +496,6 @@ func main() {
 			fmt.Printf("Error Occoured: %s \n", model.err.Error())
 			return
 		}
-		fmt.Printf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<尸ㄖ爪ㄖ 丂丂卄>"), greenColor.Render("https://github.com/sairash/pomossh"), greenColor.Render("https://sairashgautam.com.np/"))
+		fmt.Println(end_info)
 	}
 }
