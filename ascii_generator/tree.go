@@ -23,12 +23,12 @@ const (
 	navyBlueColor   = "\033[38;5;4m"
 	deepBlueColor   = "\033[38;5;39m"
 	leafColor       = "\033[32m"
-	resetColor      = "\033[0m\033[48;2;31;31;46m"
+	resetColor      = "\033[0m"
 	skipHeight      = 2
 )
 
 var (
-	BrownColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969")).Background(lipgloss.Color("#1f1f2e"))
+	BrownColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969"))
 	cacheMutex sync.Mutex
 )
 

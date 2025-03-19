@@ -45,17 +45,17 @@ const (
 )
 
 var (
-	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width).Background(lipgloss.Color("#1f1f2e"))
-	heightThing       = lipgloss.NewStyle().Height(21).Background(lipgloss.Color("#1f1f2e"))
+	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width)
+	heightThing       = lipgloss.NewStyle().Height(21)
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
-	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(helper.Center("<尸ㄖ爪ㄖ 丂丂卄>", app_width+3)).AlignHorizontal(lipgloss.Center).Background(lipgloss.Color("#1f1f2e"))
-	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10).Background(lipgloss.Color("#1f1f2e"))
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4).Background(lipgloss.Color("#1f1f2e"))
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E")).Background(lipgloss.Color("#1f1f2e"))
+	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(helper.Center("<尸ㄖ爪ㄖ 丂丂卄>", app_width+3)).AlignHorizontal(lipgloss.Center)
+	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
+	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
 
-	greenColor  = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(2).Faint(true).Background(lipgloss.Color("#1f1f2e"))
-	dotStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Background(lipgloss.Color("#1f1f2e")).Render(dotChar)
-	subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Background(lipgloss.Color("#1f1f2e"))
+	greenColor  = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(2).Faint(true)
+	dotStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
+	subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 
 	run_as_ssh bool
 	end_info   = fmt.Sprintf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<尸ㄖ爪ㄖ 丂丂卄>"), greenColor.Render("https://github.com/sairash/pomossh"), greenColor.Render("https://sairashgautam.com.np/"))
@@ -117,7 +117,7 @@ type keymap struct {
 
 func initialModel() model {
 	ti := textinput.New()
-	ti.PlaceholderStyle = lipgloss.NewStyle().Background(lipgloss.Color("#1f1f2e")).Faint(true)
+	ti.PlaceholderStyle = lipgloss.NewStyle().Faint(true)
 	ti.Placeholder = "10"
 	ti.Focus()
 	ti.CharLimit = 50
@@ -125,7 +125,7 @@ func initialModel() model {
 	ti.Prompt = "- "
 
 	woI := textinput.New()
-	woI.PlaceholderStyle = lipgloss.NewStyle().Background(lipgloss.Color("#1f1f2e")).Faint(true)
+	woI.PlaceholderStyle = lipgloss.NewStyle().Faint(true)
 	woI.Placeholder = "Work"
 	woI.CharLimit = 50
 	woI.Width = 30
