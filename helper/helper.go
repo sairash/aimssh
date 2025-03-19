@@ -3,7 +3,7 @@ package helper
 import "strings"
 
 var (
-	resetColor = "\033[0m\033[48;2;31;31;46m"
+	resetColor = "\033[0m"
 )
 
 type Cell struct {
