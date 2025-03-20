@@ -35,13 +35,20 @@ import (
 type sessionState int
 
 const (
-	dotChar                = " • "
-	app_width              = 50
+	dotChar   = " • "
+	app_width = 50
+	host      = "localhost"
+	port      = "23233"
+	logo      = `  ___                         ___        _    
+ | _ \  ___   _ __    ___    / __|  ___ | |_  
+ |  _/ / _ \ | '  \  / _ \   \__ \ (_-< | ' \ 
+ |_|   \___/ |_|_|_| \___/   |___/ /__/ |_||_|
+                                              `
+
 	inputView sessionState = iota
+	logoView
 	listView
 	timerView
-	host = "localhost"
-	port = "13234"
 )
 
 var (
@@ -58,7 +65,8 @@ var (
 	subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 
 	run_as_ssh bool
-	end_info   = fmt.Sprintf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<尸ㄖ爪ㄖ 丂丂卄>"), greenColor.Render("https://github.com/sairash/pomossh"), greenColor.Render("https://sairashgautam.com.np/"))
+	gitlink    = greenColor.Render("https://github.com/sairash/pomossh")
+	end_info   = fmt.Sprintf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<尸ㄖ爪ㄖ 丂丂卄>"), gitlink, greenColor.Render("https://sairashgautam.com.np/"))
 )
 
 type item string
@@ -96,6 +104,7 @@ type model struct {
 	minute       time.Duration
 	selectedItem string
 	timer        timer.Model
+	loadingTimer timer.Model
 	keymap       keymap
 	help         help.Model
 	err          error
@@ -146,13 +155,14 @@ func initialModel() model {
 	// l.SetShowTitle(false)
 
 	return model{
-		state:     inputView,
-		input:     ti,
-		workingon: woI,
-		list:      l,
-		err:       nil,
-		session:   "Work",
-		timedOut:  false,
+		state:        logoView,
+		input:        ti,
+		loadingTimer: timer.NewWithInterval(800*time.Millisecond, time.Millisecond),
+		workingon:    woI,
+		list:         l,
+		err:          nil,
+		session:      "Work",
+		timedOut:     false,
 		keymap: keymap{
 			start: key.NewBinding(
 				key.WithKeys(" ", "s"),
@@ -177,10 +187,11 @@ func initialModel() model {
 		},
 		help: help.New(),
 	}
+
 }
 
 func (m model) Init() tea.Cmd {
-	return textinput.Blink
+	return tea.Batch(m.loadingTimer.Init(), m.loadingTimer.Start())
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -196,6 +207,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch m.state {
+	case logoView:
+		return updateLogo(msg, m)
 	case inputView:
 		return updateInput(msg, m)
 	case listView:
@@ -205,6 +218,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	default:
 		return m, nil
 	}
+}
+
+func updateLogo(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
+	switch msg.(type) {
+	case timer.TickMsg:
+		var cmd tea.Cmd
+		m.loadingTimer, cmd = m.loadingTimer.Update(msg)
+		return m, cmd
+	case timer.TimeoutMsg:
+		m.state = inputView
+		return m, textinput.Blink
+	}
+	return m, nil
 }
 
 func updateInput(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
@@ -267,7 +293,7 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			if selected, ok := m.list.SelectedItem().(item); ok {
 				m.selectedItem = string(selected)
-				m.timer = timer.NewWithInterval(m.minute, time.Millisecond)
+				m.timer = timer.NewWithInterval(m.minute, time.Second)
 				m.state = timerView
 				m.asciiArt = m.generate_ascii()
 				// +brownColor.Render(strings.Repeat("░", app_width-8))
@@ -381,6 +407,8 @@ func (m model) View() string {
 
 	var view string
 	switch m.state {
+	case logoView:
+		view = fmt.Sprintf("\n%s  \n\n\n       %s%s\n\n                  Loading...\n", titleStyle.SetString(logo).Render(), greenColor.Bold(true).Render("ssh"), selectedItemStyle.Underline(true).PaddingLeft(1).Render("pomo.sairashgautam.com.np"))
 	case inputView:
 		view = fmt.Sprintf(
 			"%s \n\n%s",
@@ -433,7 +461,7 @@ func percentageDifference(a, b time.Duration) float64 {
 func wish_server() {
 	s, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
-		wish.WithHostKeyPath(".ssh/id_ed25519"),
+		wish.WithHostKeyPath("/etc/ssh/ssh_host_ed25519_key"),
 		wish.WithMiddleware(
 			bubbletea.Middleware(teaHandler),
 			activeterm.Middleware(),
