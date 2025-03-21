@@ -6,6 +6,12 @@ var (
 	resetColor = "\033[0m"
 )
 
+const (
+	TimerEndedTitle     = "Timer Ended"
+	TimerStartedTitle   = "Timer Started"
+	TimerRestartedTitle = "Timer Restarted"
+)
+
 type Cell struct {
 	Ch    rune
 	Color string
