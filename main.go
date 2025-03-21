@@ -38,7 +38,7 @@ const (
 	dotChar   = " • "
 	app_width = 50
 	host      = "localhost"
-	port      = "23233"
+	port      = "13234"
 	logo      = `  ___                         ___        _    
  | _ \  ___   _ __    ___    / __|  ___ | |_  
  |  _/ / _ \ | '  \  / _ \   \__ \ (_-< | ' \ 
@@ -114,6 +114,7 @@ type model struct {
 	asciiArt     ascii_generator.AsciiArt
 	quitting     bool
 	timedOut     bool
+	sessionSsh   ssh.Session
 }
 
 type keymap struct {
@@ -124,7 +125,7 @@ type keymap struct {
 	new   key.Binding
 }
 
-func initialModel() model {
+func initialModel(session interface{}) model {
 	ti := textinput.New()
 	ti.PlaceholderStyle = lipgloss.NewStyle().Faint(true)
 	ti.Placeholder = "10"
@@ -154,7 +155,7 @@ func initialModel() model {
 	l.SetHeight(23)
 	// l.SetShowTitle(false)
 
-	return model{
+	m := model{
 		state:        logoView,
 		input:        ti,
 		loadingTimer: timer.NewWithInterval(800*time.Millisecond, time.Millisecond),
@@ -187,6 +188,13 @@ func initialModel() model {
 		},
 		help: help.New(),
 	}
+
+	switch session := session.(type) {
+	case ssh.Session:
+		m.sessionSsh = session
+	}
+
+	return m
 
 }
 
@@ -227,6 +235,7 @@ func updateLogo(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		m.loadingTimer, cmd = m.loadingTimer.Update(msg)
 		return m, cmd
 	case timer.TimeoutMsg:
+		m.loadingTimer.Stop()
 		m.state = inputView
 		return m, textinput.Blink
 	}
@@ -293,7 +302,7 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			if selected, ok := m.list.SelectedItem().(item); ok {
 				m.selectedItem = string(selected)
-				m.timer = timer.NewWithInterval(m.minute, time.Second)
+				m.timer = timer.NewWithInterval(m.minute, time.Millisecond)
 				m.state = timerView
 				m.asciiArt = m.generate_ascii()
 				// +brownColor.Render(strings.Repeat("░", app_width-8))
@@ -461,7 +470,7 @@ func percentageDifference(a, b time.Duration) float64 {
 func wish_server() {
 	s, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
-		wish.WithHostKeyPath("/etc/ssh/ssh_host_ed25519_key"),
+		wish.WithHostKeyPath(".ssh/id_ed25519"),
 		wish.WithMiddleware(
 			bubbletea.Middleware(teaHandler),
 			activeterm.Middleware(),
@@ -469,6 +478,7 @@ func wish_server() {
 			// After Bubbletea quit.
 			func(next ssh.Handler) ssh.Handler {
 				return func(sess ssh.Session) {
+					// pty, _, _ :=
 					wish.Println(sess, end_info)
 					next(sess)
 				}
@@ -499,7 +509,20 @@ func wish_server() {
 }
 
 func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-	return initialModel(), []tea.ProgramOption{tea.WithAltScreen()}
+	s.Context().SetValue("operating_system", detectOS(s))
+	return initialModel(s), []tea.ProgramOption{tea.WithAltScreen()}
+}
+
+func detectOS(s ssh.Session) string {
+	if wish.Command(s, "sw_vers").Run() == nil {
+		return "darwin"
+	}
+
+	if wish.Command(s, "paplay", "--help").Run() == nil {
+		return "linux"
+	}
+
+	return "windows"
 }
 
 func main() {
@@ -512,7 +535,7 @@ func main() {
 		return
 	}
 
-	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
+	p := tea.NewProgram(initialModel(nil), tea.WithAltScreen())
 	m, err := p.Run()
 	if err != nil {
 		fmt.Println("Error running program:", err)
