@@ -307,7 +307,17 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.asciiArt = m.generate_ascii()
 				// +brownColor.Render(strings.Repeat("░", app_width-8))
 				m.keymap.start.SetEnabled(false)
-				beeep.Alert("Timer Start", fmt.Sprintf("Pomodoro timer set for %d minutes.", int(m.timer.Timeout.Minutes())), "assets/logo.png")
+
+				notificaiton_body := fmt.Sprintf("Pomodoro timer set for %d minutes.", int(m.timer.Timeout.Minutes()))
+				if !run_as_ssh {
+					beeep.Alert(helper.TimerStartedTitle, notificaiton_body, "assets/logo.png")
+				} else {
+					switch m.sessionSsh.Context().Value("operating_system") {
+					case "linux":
+						wish.Command(m.sessionSsh, "notify-send", "-a", "Pomossh", helper.TimerStartedTitle, notificaiton_body).Run()
+					}
+				}
+
 				return m, m.timer.Init()
 			}
 		}
@@ -335,7 +345,18 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		return m, cmd
 	case timer.TimeoutMsg:
 		m.timedOut = true
-		beeep.Alert("Timer Ended", "The timer has ended.", "assets/logo.png")
+
+		notificaiton_body := "The timer has ended."
+		if !run_as_ssh {
+			beeep.Alert(helper.TimerEndedTitle, notificaiton_body, "assets/logo.png")
+		} else {
+			switch m.sessionSsh.Context().Value("operating_system") {
+			case "linux":
+				wish.Command(m.sessionSsh, "notify-send", "-a", "Pomossh", helper.TimerEndedTitle, notificaiton_body).Run()
+
+			}
+		}
+
 		// return m, tea.SetWindowTitle("Done")
 
 	case timer.StartStopMsg:
@@ -359,7 +380,17 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.timedOut = false
 			m.asciiArt = m.generate_ascii()
 			m.timer.Timeout = m.minute
-			beeep.Alert("Timer Restarted", fmt.Sprintf("Pomodoro timer set for %d minutes.", int(m.timer.Timeout.Minutes())), "assets/logo.png")
+
+			notificaiton_body := fmt.Sprintf("Pomodoro timer set for %d minutes.", int(m.timer.Timeout.Minutes()))
+			if !run_as_ssh {
+				beeep.Alert(helper.TimerRestartedTitle, notificaiton_body, "assets/logo.png")
+			} else {
+				switch m.sessionSsh.Context().Value("operating_system") {
+				case "linux":
+					wish.Command(m.sessionSsh, "notify-send", "-a", "Pomossh", helper.TimerRestartedTitle, notificaiton_body).Run()
+				}
+			}
+
 			return m, m.timer.Start()
 		case key.Matches(msg, m.keymap.new):
 			m.timedOut = false
