@@ -545,9 +545,9 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 }
 
 func detectOS(s ssh.Session) string {
-	if wish.Command(s, "sw_vers").Run() == nil {
-		return "darwin"
-	}
+	// if wish.Command(s, "sw_vers").Run() == nil {
+	// 	return "darwin"
+	// }
 
 	if wish.Command(s, "paplay", "--help").Run() == nil {
 		return "linux"
