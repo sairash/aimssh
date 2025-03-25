@@ -66,7 +66,7 @@ var (
 
 	run_as_ssh bool
 	gitlink    = greenColor.Render("https://github.com/sairash/pomossh")
-	end_info   = fmt.Sprintf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<尸ㄖ爪ㄖ 丂丂卄>"), gitlink, greenColor.Render("https://sairashgautam.com.np/"))
+	end_info   = fmt.Sprintf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<POMO SSH>"), gitlink, greenColor.Render("https://sairashgautam.com.np/"))
 )
 
 type item string
