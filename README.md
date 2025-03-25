@@ -5,7 +5,7 @@ This is a terminal pomodoro application.
 
 To use the application:
 ``` sh
-ssh://pomo.sairashgautam.com.np
+ssh pomo.sairashgautam.com.np
 ```
 
 Or use it directly
