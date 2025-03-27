@@ -2,22 +2,24 @@
 
 # Pomo SSH 
 
-![GitHub Release](https://img.shields.io/github/v/release/sairash/pomossh) ![](https://img.shields.io/github/go-mod/go-version/sairash/pomossh) ![](https://img.shields.io/github/languages/code-size/sairash/pomossh) ![](https://img.shields.io/github/license/sairash/pomossh) ![](https://img.shields.io/github/actions/workflow/status/sairash/pomossh/release.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/sairash/pomossh)](https://goreportcard.com/report/github.com/sairash/pomossh) 
-
 A __`Terminal Pomodoro Application`__.
 
 [Official Website](https://pomo.sairashgautam.com.np)
-
-
-
-
-
 
 
 To use the application:
 ``` sh
 ssh pomo.sairashgautam.com.np
 ```
+
+<br/>
+<br/>
+
+
+![GitHub Release](https://img.shields.io/github/v/release/sairash/pomossh) ![](https://img.shields.io/github/go-mod/go-version/sairash/pomossh) ![](https://img.shields.io/github/languages/code-size/sairash/pomossh) ![](https://img.shields.io/github/license/sairash/pomossh) ![](https://img.shields.io/github/actions/workflow/status/sairash/pomossh/release.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/sairash/pomossh)](https://goreportcard.com/report/github.com/sairash/pomossh) 
+
+
+
 
 ![Demo](./assets/demo-small-screen.png)
 
