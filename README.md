@@ -142,3 +142,6 @@ __Run pomossh as server:__
 ```sh
 pomossh -ssh true
 ```
+<br/>
+
+Made With ❤️ by <a href="https://sairashgautam.com.np" target="_blank" class="border-b-2 text-[#CFF27E]" rel="noopener noreferrer">Sairash</a>.
