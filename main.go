@@ -60,9 +60,9 @@ var (
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
 
-	greenColor  = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(2).Faint(true)
-	dotStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
-	subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+	greenColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(2).Faint(true)
+	dotStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
+	// subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 
 	run_as_ssh bool
 	gitlink    = greenColor.Render("https://github.com/sairash/pomossh")
@@ -123,6 +123,10 @@ type keymap struct {
 	reset key.Binding
 	quit  key.Binding
 	new   key.Binding
+
+	back  key.Binding
+	enter key.Binding
+	ctrlc key.Binding
 }
 
 func initialModel(session interface{}) model {
@@ -185,6 +189,18 @@ func initialModel(session interface{}) model {
 				key.WithKeys("n"),
 				key.WithHelp("n", "new"),
 			),
+			back: key.NewBinding(
+				key.WithKeys("ctrl+b"),
+				key.WithHelp("ctrl+b", "back"),
+			),
+			enter: key.NewBinding(
+				key.WithKeys("enter"),
+				key.WithHelp("↩", "enter"),
+			),
+			ctrlc: key.NewBinding(
+				key.WithKeys("ctrl+c"),
+				key.WithHelp("ctrl+c", "quit"),
+			),
 		},
 		help: help.New(),
 	}
@@ -208,10 +224,31 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 	case tea.KeyMsg:
-		if msg.Type == tea.KeyCtrlC {
+
+		switch msg.Type {
+		case tea.KeyCtrlC:
 			m.quitting = true
 			return m, tea.Quit
+
+		case tea.KeyCtrlB:
+
+			switch m.state {
+			case inputView:
+				if m.workingon.Focused() {
+					m.workingon.Blur()
+					m.input.Focus()
+				}
+
+			case listView:
+				m.state = inputView
+				m.input.Blur()
+				m.workingon.Focus()
+			case timerView:
+				m.state = listView
+			}
+
 		}
+
 	}
 
 	switch m.state {
@@ -408,6 +445,15 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 }
 
 func (m model) helpView() string {
+	switch m.state {
+	case inputView:
+		return "\n" + m.help.ShortHelpView([]key.Binding{
+			m.keymap.enter,
+			m.keymap.back,
+			m.keymap.ctrlc,
+		})
+	}
+
 	return "\n" + m.help.ShortHelpView([]key.Binding{
 		m.keymap.start,
 		m.keymap.stop,
@@ -454,7 +500,7 @@ func (m model) View() string {
 			"%s \n\n%s",
 			titleStyle.Render(),
 			paddingleft.Render(
-				fmt.Sprintf("%s\n\n%s",
+				fmt.Sprintf("%s\n%s",
 					heightThing.Render(
 						fmt.Sprintf("%s \n\n%s\n\n%s \n\n%s",
 							listTitleStyle.Render("Time in minute: *"),
@@ -463,13 +509,15 @@ func (m model) View() string {
 							m.workingon.View(),
 						),
 					),
-					subtleStyle.Render("↩ Enter")+dotStyle+subtleStyle.Render("Ctrl + C"))))
+					m.helpView())))
 	case listView:
 		view = fmt.Sprintf(
-			"%s \n\n%s",
+			"%s \n\n%s%s%s",
 			titleStyle.Render(),
 			// listTitleStyle.Render("Select a visual option: "),
 			m.list.View(),
+			dotStyle,
+			m.list.Help.ShortHelpView([]key.Binding{m.keymap.back}),
 		)
 	case timerView:
 		text := "Session Ended, Press (r) or (n)"
