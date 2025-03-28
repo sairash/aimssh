@@ -494,7 +494,7 @@ func (m model) View() string {
 	var view string
 	switch m.state {
 	case logoView:
-		view = fmt.Sprintf("\n%s  \n\n\n       %s%s\n\n                  Loading...\n", titleStyle.SetString(logo).Render(), greenColor.Bold(true).Render("ssh"), selectedItemStyle.Underline(true).PaddingLeft(1).Render("pomo.sairashgautam.com.np"))
+		view = fmt.Sprintf("\n%s  \n\n\n            %s%s\n\n                  Loading...\n", titleStyle.SetString(logo).Render(), greenColor.Bold(true).Render("ssh"), selectedItemStyle.Underline(true).PaddingLeft(1).Render("pomo.ftp.sh"))
 	case inputView:
 		view = fmt.Sprintf(
 			"%s \n\n%s",
