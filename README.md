@@ -4,12 +4,12 @@
 
 A __`Terminal Pomodoro Application`__.
 
-[Official Website](https://pomo.sairashgautam.com.np)
+[Official Website](https://pomo.ftp.sh)
 
 
 To use the application:
 ``` sh
-ssh pomo.sairashgautam.com.np
+ssh pomo.ftp.sh
 ```
 
 <br/>
