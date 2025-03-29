@@ -16,7 +16,7 @@ ssh pomo.ftp.sh
 <br/>
 
 
-![GitHub Release](https://img.shields.io/github/v/release/sairash/pomossh) ![](https://img.shields.io/github/go-mod/go-version/sairash/pomossh) ![](https://img.shields.io/github/languages/code-size/sairash/pomossh) ![](https://img.shields.io/github/license/sairash/pomossh) ![](https://img.shields.io/github/actions/workflow/status/sairash/pomossh/release.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/sairash/pomossh)](https://goreportcard.com/report/github.com/sairash/pomossh) 
+![GitHub Release](https://img.shields.io/github/v/release/sairash/pomossh) ![](https://img.shields.io/github/go-mod/go-version/sairash/pomossh) ![](https://img.shields.io/github/languages/code-size/sairash/pomossh) ![](https://img.shields.io/github/license/sairash/pomossh)  [![Go Report Card](https://goreportcard.com/badge/github.com/sairash/pomossh)](https://goreportcard.com/report/github.com/sairash/pomossh) 
 
 
 
