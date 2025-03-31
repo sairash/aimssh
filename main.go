@@ -66,6 +66,8 @@ var (
 
 	run_as_ssh bool
 	gitlink    = greenColor.Render("https://github.com/sairash/pomossh")
+
+	brownColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969"))
 	end_info   = fmt.Sprintf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<POMO SSH>"), gitlink, greenColor.Render("https://sairashgautam.com.np/"))
 )
 
@@ -505,7 +507,7 @@ func (m model) View() string {
 						fmt.Sprintf("%s \n\n%s\n\n%s \n\n%s",
 							listTitleStyle.Render("Time in minute: *"),
 							m.input.View(),
-							ascii_generator.BrownColor.Render("Session:"),
+							brownColor.Render("Session:"),
 							m.workingon.View(),
 						),
 					),

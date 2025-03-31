@@ -8,8 +8,6 @@ import (
 	"pomossh/helper"
 	"strings"
 	"sync"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 const (
@@ -28,7 +26,6 @@ const (
 )
 
 var (
-	BrownColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969"))
 	cacheMutex sync.Mutex
 )
 
