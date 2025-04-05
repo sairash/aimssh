@@ -117,7 +117,7 @@ curl -sSL https://gist.githubusercontent.com/sairash/f07c0d194c755fdd6c4fe39d001
 __Windows:__
 
 ``` sh
-curl -sSL https://gist.githubusercontent.com/sairash/d6ce0c6a627f932dd105f17209d1b0e2/raw/20c42bfbafb09bf495cda7a77fe33fcab0055e6a/install_aim.ps1 | powershell -c -
+curl -sSL https://gist.githubusercontent.com/sairash/d6ce0c6a627f932dd105f17209d1b0e2/raw/20c42bfbafb09bf495cda7a77fe33fcab0055e6a/install_pomo.ps1 | powershell -c -
 ```
 
 
