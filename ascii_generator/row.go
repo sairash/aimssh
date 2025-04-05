@@ -3,8 +3,8 @@
 package ascii_generator
 
 import (
+	"aimssh/helper"
 	"math/rand"
-	"pomossh/helper"
 	"sync"
 	"time"
 )

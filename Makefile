@@ -1,5 +1,5 @@
 OUTPUT_DIR := binary
-BINARY_NAME := pomossh
+BINARY_NAME := aimssh
 
 PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64
 

@@ -1,4 +1,4 @@
-module pomossh
+module aimssh
 
 go 1.24.0
 

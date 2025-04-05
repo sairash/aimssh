@@ -1,37 +1,44 @@
 <img src="./assets/logo.png" width="100" />
 
-# Pomo SSH 
+# Aim SSH
+Mulitple Productive __`Terminal SSH Application`__.
 
-A __`Terminal Pomodoro Application`__.
-
-[Official Website](https://pomo.ftp.sh)
+[Official Website](https://aim.ftp.sh)
 
 
 To use the application:
 ``` sh
-ssh pomo.ftp.sh
+ssh aim.ftp.sh
 ```
 
 <br/>
 <br/>
 
 
-![GitHub Release](https://img.shields.io/github/v/release/sairash/pomossh) ![](https://img.shields.io/github/go-mod/go-version/sairash/pomossh) ![](https://img.shields.io/github/languages/code-size/sairash/pomossh) ![](https://img.shields.io/github/license/sairash/pomossh)  [![Go Report Card](https://goreportcard.com/badge/github.com/sairash/pomossh)](https://goreportcard.com/report/github.com/sairash/pomossh) 
-
+![GitHub Release](https://img.shields.io/github/v/release/sairash/aimssh) ![](https://img.shields.io/github/go-mod/go-version/sairash/aimssh) ![](https://img.shields.io/github/languages/code-size/sairash/aimssh) ![](https://img.shields.io/github/license/sairash/aimssh)  [![Go Report Card](https://goreportcard.com/badge/github.com/sairash/aimssh)](https://goreportcard.com/report/github.com/sairash/aimssh) 
 
 
 
 ![Demo](./assets/demo-small-screen.png)
 
 
-Introducing a fresh take on productivity, a unique Pomodoro Timer app designed specifically for the terminal enthusiasts and tech-savvy professionals.
+Introducing a fresh take on productivity, a unique terminal productivity app designed specifically for the terminal enthusiasts and tech-savvy professionals.
 
-This minimalist design keeps your focus on tasks without the clutter of traditional apps.
+This minimalist design keeps your aim on tasks without the clutter of traditional apps.
+
+### Planned and Added
+- ✅ Timer
+- ❌ Todo List similar to todist
+- ❌ Notes Taking
+- ❌ Stats
 
 
 ---
 
 __Visual Options:__
+
+__Note:__ The screenshots are before the rebranding (Updating soon)
+
 
 Visual Effects are the visual aspects of the timer to make every sessions intresting. Here are some of the available visual options. 
 
@@ -67,8 +74,7 @@ A coffee mug that filles up over time.
 
 --- 
 
-
-### How to use Pomossh:
+### How to use aimssh:
 
 __STEP [1]:__
 
@@ -98,9 +104,9 @@ Work!
 ----
 
 
-### How to install Pomossh locally:
+### How to install aimssh locally:
 
-To install pomossh locally run the following command.
+To install aimssh locally run the following command.
 
 __Linux/MAC:__
 
@@ -111,7 +117,7 @@ curl -sSL https://gist.githubusercontent.com/sairash/f07c0d194c755fdd6c4fe39d001
 __Windows:__
 
 ``` sh
-curl -sSL https://gist.githubusercontent.com/sairash/d6ce0c6a627f932dd105f17209d1b0e2/raw/20c42bfbafb09bf495cda7a77fe33fcab0055e6a/install_pomo.ps1 | powershell -c -
+curl -sSL https://gist.githubusercontent.com/sairash/d6ce0c6a627f932dd105f17209d1b0e2/raw/20c42bfbafb09bf495cda7a77fe33fcab0055e6a/install_aim.ps1 | powershell -c -
 ```
 
 
@@ -120,11 +126,11 @@ Or use it directly
 
 
 ``` sh
-git clone https://github.com/sairash/pomossh
+git clone https://github.com/sairash/aimssh
 ```
 
 ``` sh
-cd pomossh
+cd aimssh
 ```
 
 ``` sh
@@ -133,14 +139,14 @@ go build
 
 And,
 
-__Run pomossh as client:__
+__Run aimssh as client:__
 ```sh
-pomossh
+aimssh
 ```
 
-__Run pomossh as server:__
+__Run aimssh as server:__
 ```sh
-pomossh -ssh true
+aimssh -ssh true
 ```
 <br/>
 

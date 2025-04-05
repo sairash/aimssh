@@ -1,6 +1,8 @@
 package main
 
 import (
+	"aimssh/ascii_generator"
+	"aimssh/helper"
 	"context"
 	"errors"
 	"flag"
@@ -9,8 +11,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"pomossh/ascii_generator"
-	"pomossh/helper"
 	"strconv"
 	"strings"
 	"syscall"
@@ -39,10 +39,11 @@ const (
 	app_width = 50
 	host      = "localhost"
 	port      = "13234"
-	logo      = `  ___                         ___        _    
- | _ \  ___   _ __    ___    / __|  ___ | |_  
- |  _/ / _ \ | '  \  / _ \   \__ \ (_-< | ' \ 
- |_|   \___/ |_|_|_| \___/   |___/ /__/ |_||_|
+	logo      = `    _    ___ __  __   ____ ____  _   _ 
+   / \  |_ _|  \/  | / ___/ ___|| | | |
+  / _ \  | || |\/| | \___ \___ \| |_| |
+ / ___ \ | || |  | |  ___) |__) |  _  |
+/_/   \_\___|_|  |_| |____/____/|_| |_|
                                               `
 
 	inputView sessionState = iota
@@ -55,7 +56,7 @@ var (
 	appStyle          = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder(), true, true, true, true).Width(app_width)
 	heightThing       = lipgloss.NewStyle().Height(21)
 	paddingleft       = lipgloss.NewStyle().PaddingLeft(2)
-	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(helper.Center(`<POMO SSH>`, app_width-4)).AlignHorizontal(lipgloss.Center)
+	titleStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).SetString(helper.Center(`<AIM SSH>`, app_width-4)).AlignHorizontal(lipgloss.Center)
 	listTitleStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#bfedc1")).PaddingLeft(-10)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("#CFF27E"))
@@ -65,10 +66,10 @@ var (
 	// subtleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 
 	run_as_ssh bool
-	gitlink    = greenColor.Render("https://github.com/sairash/pomossh")
+	gitlink    = greenColor.Render("https://github.com/sairash/aimssh")
 
 	brownColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967969"))
-	end_info   = fmt.Sprintf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<POMO SSH>"), gitlink, greenColor.Render("https://sairashgautam.com.np/"))
+	end_info   = fmt.Sprintf("\n Thanks for using %s! \n Give a star %s \n Made By     %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#49beaa")).Bold(true).Render("<AIM SSH>"), gitlink, greenColor.Render("https://sairashgautam.com.np/"))
 )
 
 type item string
@@ -347,13 +348,13 @@ func updateList(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				// +brownColor.Render(strings.Repeat("░", app_width-8))
 				m.keymap.start.SetEnabled(false)
 
-				notificaiton_body := fmt.Sprintf("Pomodoro timer set for %d minutes.", int(m.timer.Timeout.Minutes()))
+				notificaiton_body := fmt.Sprintf("Timer set for %d minutes.", int(m.timer.Timeout.Minutes()))
 				if !run_as_ssh {
 					beeep.Alert(helper.TimerStartedTitle, notificaiton_body, "assets/logo.png")
 				} else {
 					switch m.sessionSsh.Context().Value("operating_system") {
 					case "linux":
-						wish.Command(m.sessionSsh, "notify-send", "-a", "Pomossh", helper.TimerStartedTitle, notificaiton_body).Run()
+						wish.Command(m.sessionSsh, "notify-send", "-a", "Aimssh", helper.TimerStartedTitle, notificaiton_body).Run()
 					}
 				}
 
@@ -391,7 +392,7 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		} else {
 			switch m.sessionSsh.Context().Value("operating_system") {
 			case "linux":
-				wish.Command(m.sessionSsh, "notify-send", "-a", "Pomossh", helper.TimerEndedTitle, notificaiton_body).Run()
+				wish.Command(m.sessionSsh, "notify-send", "-a", "Aimssh", helper.TimerEndedTitle, notificaiton_body).Run()
 
 			}
 		}
@@ -420,13 +421,13 @@ func updateTimer(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.asciiArt = m.generate_ascii()
 			m.timer.Timeout = m.minute
 
-			notificaiton_body := fmt.Sprintf("Pomodoro timer set for %d minutes.", int(m.timer.Timeout.Minutes()))
+			notificaiton_body := fmt.Sprintf("Timer set for %d minutes.", int(m.timer.Timeout.Minutes()))
 			if !run_as_ssh {
 				beeep.Alert(helper.TimerRestartedTitle, notificaiton_body, "assets/logo.png")
 			} else {
 				switch m.sessionSsh.Context().Value("operating_system") {
 				case "linux":
-					wish.Command(m.sessionSsh, "notify-send", "-a", "Pomossh", helper.TimerRestartedTitle, notificaiton_body).Run()
+					wish.Command(m.sessionSsh, "notify-send", "-a", "Aimssh", helper.TimerRestartedTitle, notificaiton_body).Run()
 				}
 			}
 
@@ -496,7 +497,7 @@ func (m model) View() string {
 	var view string
 	switch m.state {
 	case logoView:
-		view = fmt.Sprintf("\n%s  \n\n\n            %s%s\n\n                  Loading...\n", titleStyle.SetString(logo).Render(), greenColor.Bold(true).Render("ssh"), selectedItemStyle.Underline(true).PaddingLeft(1).Render("pomo.ftp.sh"))
+		view = fmt.Sprintf("\n%s  \n\n\n            %s%s\n\n                  Loading...\n", titleStyle.SetString(logo).Render(), greenColor.Bold(true).Render("ssh"), selectedItemStyle.Underline(true).PaddingLeft(2).Render("aim.ftp.sh"))
 	case inputView:
 		view = fmt.Sprintf(
 			"%s \n\n%s",

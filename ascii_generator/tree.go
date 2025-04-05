@@ -3,9 +3,9 @@
 package ascii_generator
 
 import (
+	"aimssh/helper"
 	"math"
 	"math/rand"
-	"pomossh/helper"
 	"strings"
 	"sync"
 )

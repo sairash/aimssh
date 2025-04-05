@@ -3,8 +3,8 @@
 package ascii_generator
 
 import (
+	"aimssh/helper"
 	"math"
-	"pomossh/helper"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
