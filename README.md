@@ -80,7 +80,7 @@ __STEP [1]:__
 
 Run the following comamnd in your terminal
 
-<img src="./assets/sshpomosairashgautamcomnp.png" width="500" />
+<img src="./assets/sshaimftpsh.png" width="500" />
 
 __STEP [2]:__
 
