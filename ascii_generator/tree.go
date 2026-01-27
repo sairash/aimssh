@@ -1,5 +1,4 @@
-// inspiration: https://gitlab.com/jallbrit/cbonsai
-
+// Tree animation, inspiration: https://gitlab.com/jallbrit/cbonsai
 package ascii_generator
 
 import (
@@ -10,6 +9,7 @@ import (
 	"sync"
 )
 
+// ANSI color codes for tree rendering
 const (
 	branchColor     = "\033[38;5;94m"
 	orangeColor     = "\033[38;5;208m"
@@ -25,15 +25,13 @@ const (
 	skipHeight      = 2
 )
 
-var (
-	cacheMutex sync.Mutex
-)
-
+// branchParams holds parameters for drawing a branch
 type branchParams struct {
 	x, y, angle, length float64
 	depth               int
 }
 
+// Tree represents a procedurally generated ASCII tree
 type Tree struct {
 	Canvas        [][]helper.Cell
 	width         int
@@ -41,11 +39,13 @@ type Tree struct {
 	branchesQueue []branchParams
 	currentLevel  int
 	totalLevels   int
-	cachedOutput  string // Cached string output
-	dirty         bool   // Whether cache needs invalidation
-	lastPercent   int    // Last requested percentage
+	cachedOutput  string
+	dirty         bool
+	lastPercent   int
+	mu            sync.Mutex
 }
 
+// initCanvas creates a new Tree with an initialized canvas
 func initCanvas(width, height int) Tree {
 	t := Tree{
 		height: height,
@@ -55,20 +55,21 @@ func initCanvas(width, height int) Tree {
 	t.Canvas = make([][]helper.Cell, height)
 	for i := 0; i < height; i++ {
 		t.Canvas[i] = make([]helper.Cell, width)
-		append_char := ' '
+		appendChar := ' '
 		color := ""
 		if i == t.height-skipHeight {
-			append_char = '#'
+			appendChar = '#'
 			color = branchColor
 		}
 		for j := 0; j < width; j++ {
-			t.Canvas[i][j] = helper.Cell{Ch: append_char, Color: color}
+			t.Canvas[i][j] = helper.Cell{Ch: appendChar, Color: color}
 		}
 	}
 
 	return t
 }
 
+// drawLine draws a line on the canvas using Bresenham's algorithm
 func (t *Tree) drawLine(x0, y0, x1, y1 float64, ch rune, col string) {
 	dx := x1 - x0
 	dy := y1 - y0
@@ -90,9 +91,10 @@ func (t *Tree) drawLine(x0, y0, x1, y1 float64, ch rune, col string) {
 	}
 }
 
+// Next processes the tree growth up to the given percentage
 func (t *Tree) Next(percentage int) bool {
-	cacheMutex.Lock()
-	defer cacheMutex.Unlock()
+	t.mu.Lock()
+	defer t.mu.Unlock()
 
 	// Return cached result if percentage hasn't changed
 	if percentage == t.lastPercent && !t.dirty {
@@ -178,9 +180,10 @@ func (t *Tree) Next(percentage int) bool {
 	return len(t.branchesQueue) > 0
 }
 
+// StringPrint returns the tree as a string
 func (t *Tree) StringPrint() string {
-	cacheMutex.Lock()
-	defer cacheMutex.Unlock()
+	t.mu.Lock()
+	defer t.mu.Unlock()
 
 	if !t.dirty && t.cachedOutput != "" {
 		return t.cachedOutput
@@ -210,19 +213,23 @@ func (t *Tree) StringPrint() string {
 	return t.cachedOutput
 }
 
+// NextAndString updates the tree and returns it as a string
 func (t *Tree) NextAndString(percent int) string {
 	t.Next(percent)
 	return t.StringPrint() + "\n"
 }
 
+// Width returns the canvas width
 func (t *Tree) Width() int {
 	return t.width
 }
 
+// Height returns the canvas height
 func (t *Tree) Height() int {
 	return t.height
 }
 
+// GenerateTree creates a new procedural tree with the given dimensions
 func GenerateTree(width, height int) *Tree {
 	t := initCanvas(width, height)
 

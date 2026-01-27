@@ -1,22 +1,28 @@
-// inspiration from: https://www.youtube.com/watch?v=I5Q03I-ybXQ
-
+// Coffee animation, inspiration from: https://www.youtube.com/watch?v=I5Q03I-ybXQ
 package ascii_generator
 
 import (
 	"aimssh/helper"
 	"math"
+	"sync"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Coffee represents an animated coffee cup that fills over time
 type Coffee struct {
-	width, height, curFrame, prevPercent int
-	cachedTop                            string
-	cachedBottom                         string
+	width        int
+	height       int
+	curFrame     int
+	prevPercent  int
+	cachedTop    string
+	cachedBottom string
+	mu           sync.RWMutex
 }
 
-func (c *Coffee) fill_amount(percent, width, height int) [][]rune {
+// fillAmount calculates the fill pattern for the given percentage
+func (c *Coffee) fillAmount(percent, width, height int) [][]rune {
 	totalCells := width * height
 	fillCells := int(math.Ceil(float64(percent*totalCells) / 100.0))
 
@@ -40,90 +46,102 @@ func (c *Coffee) fill_amount(percent, width, height int) [][]rune {
 }
 
 var (
-	cup_color    = lipgloss.NewStyle().Foreground(lipgloss.Color("#f78dbb"))
-	coffee_color = lipgloss.NewStyle().Foreground(lipgloss.Color("#967259"))
+	cupColor    = lipgloss.NewStyle().Foreground(lipgloss.Color("#f78dbb"))
+	coffeeColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#967259"))
 
-	steam_animation = [][]string{
+	steamAnimation = [][]string{
 		{
 			"       {", "    {   }",
-			"                }" + cup_color.Render("_") + "{ " + cup_color.Render("__") + "{",
-			cup_color.Render("             .-") + "{   }   }" + cup_color.Render("-."),
-			cup_color.Render("            (") + "   }     {   " + cup_color.Render(")"),
+			"                }" + cupColor.Render("_") + "{ " + cupColor.Render("__") + "{",
+			cupColor.Render("             .-") + "{   }   }" + cupColor.Render("-."),
+			cupColor.Render("            (") + "   }     {   " + cupColor.Render(")"),
 		},
 		{
 			"        }", "   {   } ",
-			"               { " + cup_color.Render("_") + "} " + cup_color.Render("__") + "{",
-			cup_color.Render("             .-") + "}   {   {" + cup_color.Render("-."),
-			cup_color.Render("            (") + "   {     }   " + cup_color.Render(")"),
+			"               { " + cupColor.Render("_") + "} " + cupColor.Render("__") + "{",
+			cupColor.Render("             .-") + "}   {   {" + cupColor.Render("-."),
+			cupColor.Render("            (") + "   {     }   " + cupColor.Render(")"),
 		},
 		{
 			"     {", "  {   }",
-			"                }" + cup_color.Render("_") + "{ " + cup_color.Render("__") + "{",
-			cup_color.Render("             .-") + "{   }   }" + cup_color.Render("-."),
-			cup_color.Render("            (") + "   }     {   " + cup_color.Render(")"),
+			"                }" + cupColor.Render("_") + "{ " + cupColor.Render("__") + "{",
+			cupColor.Render("             .-") + "{   }   }" + cupColor.Render("-."),
+			cupColor.Render("            (") + "   }     {   " + cupColor.Render(")"),
 		},
 		{
 			"          }", "     {   } ",
-			"               { " + cup_color.Render("_") + "} " + cup_color.Render("__") + "{",
-			cup_color.Render("             .-") + "}   {   {" + cup_color.Render("-."),
-			cup_color.Render("            (") + "   {     }   " + cup_color.Render(")"),
+			"               { " + cupColor.Render("_") + "} " + cupColor.Render("__") + "{",
+			cupColor.Render("             .-") + "}   {   {" + cupColor.Render("-."),
+			cupColor.Render("            (") + "   {     }   " + cupColor.Render(")"),
 		},
 	}
 
-	cup_head = cup_color.Render(helper.Center("|'-.._____..-'|", 40))
+	cupHead = cupColor.Render(helper.Center("|'-.._____..-'|", 40))
 
-	cup_body = [][]string{
-		{cup_color.Render("            | "), cup_color.Render(" ;--.")},
-		{cup_color.Render("            | "), cup_color.Render(" (__  \\")},
-		{cup_color.Render("            | "), cup_color.Render(" |  )  )")},
-		{cup_color.Render("            | "), cup_color.Render(" | /  /")},
-		{cup_color.Render("            | "), cup_color.Render(" |/  / ")},
-		{cup_color.Render("            | "), cup_color.Render(" (  / ")},
-		{cup_color.Render("            \\ "), cup_color.Render(" y` ")},
+	cupBody = [][]string{
+		{cupColor.Render("            | "), cupColor.Render(" ;--.")},
+		{cupColor.Render("            | "), cupColor.Render(" (__  \\")},
+		{cupColor.Render("            | "), cupColor.Render(" |  )  )")},
+		{cupColor.Render("            | "), cupColor.Render(" | /  /")},
+		{cupColor.Render("            | "), cupColor.Render(" |/  / ")},
+		{cupColor.Render("            | "), cupColor.Render(" (  / ")},
+		{cupColor.Render("            \\ "), cupColor.Render(" y` ")},
 	}
-	cup_bottom = cup_color.Render("             `-.._____..-'")
+	cupBottom = cupColor.Render("             `-.._____..-'")
 )
 
-func (t *Coffee) Width() int {
-	return t.width
+// Width returns the width of the coffee fill area
+func (c *Coffee) Width() int {
+	return c.width
 }
 
-func (t *Coffee) Height() int {
-	return t.height
+// Height returns the height of the coffee fill area
+func (c *Coffee) Height() int {
+	return c.height
 }
 
+// NextAndString updates the animation and returns the current frame as string
 func (c *Coffee) NextAndString(percent int) string {
 	c.Next(percent)
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return c.cachedTop + c.cachedBottom
 }
 
+// Next updates the coffee fill level based on percentage
 func (c *Coffee) Next(percent int) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	if c.prevPercent == percent {
 		return false
 	}
 
-	grid := c.fill_amount(percent, c.width, c.height)
+	grid := c.fillAmount(percent, c.width, c.height)
 
-	total_body := cup_head + "\n"
+	totalBody := cupHead + "\n"
 	for k, v := range grid {
-		total_body += cup_body[k][0] + coffee_color.Render(string(v)) + cup_body[k][1] + "\n"
+		totalBody += cupBody[k][0] + coffeeColor.Render(string(v)) + cupBody[k][1] + "\n"
 	}
-	total_body += cup_bottom
-	c.cachedBottom = total_body + "\n\n\n"
+	totalBody += cupBottom
+	c.cachedBottom = totalBody + "\n\n\n"
 	c.prevPercent = percent
 
 	return true
 }
 
+// steam advances the steam animation and updates cachedTop
 func (c *Coffee) steam() int {
-	c.curFrame++
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
-	if c.curFrame >= len(steam_animation) {
+	c.curFrame++
+	if c.curFrame >= len(steamAnimation) {
 		c.curFrame = 0
 	}
 
 	top := ""
-	for _, v := range steam_animation[c.curFrame] {
+	for _, v := range steamAnimation[c.curFrame] {
 		top += helper.Center(v, 40) + "\n"
 	}
 	c.cachedTop = "\n\n\n" + top
@@ -131,6 +149,7 @@ func (c *Coffee) steam() int {
 	return c.curFrame
 }
 
+// GenerateCoffee creates a new Coffee animation
 func GenerateCoffee() *Coffee {
 	c := &Coffee{
 		width:        11,
@@ -142,9 +161,11 @@ func GenerateCoffee() *Coffee {
 	}
 
 	c.Next(0)
+
+	// Steam animation goroutine
 	go func() {
+		t := time.NewTicker(2 * time.Second)
 		for {
-			t := time.NewTicker(2 * time.Second)
 			c.steam()
 			<-t.C
 		}

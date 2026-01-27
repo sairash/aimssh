@@ -1,31 +1,42 @@
+// Package helper provides utility functions for the AimSSH application,
+// including string manipulation, canvas layering, and terminal commands.
 package helper
 
-import "strings"
+import (
+	"fmt"
+	"strings"
 
-var (
-	resetColor = "\033[0m"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
+// ANSI reset color code
+const resetColor = "\033[0m"
+
+// Notification title constants
 const (
 	TimerEndedTitle     = "Timer Ended"
 	TimerStartedTitle   = "Timer Started"
 	TimerRestartedTitle = "Timer Restarted"
 )
 
+// Cell represents a single character cell with optional color
 type Cell struct {
 	Ch    rune
 	Color string
 }
 
-func Center(s string, total_width int) string {
-	if len(s) >= total_width {
+// Center centers a string within the given width by padding with spaces
+func Center(s string, totalWidth int) string {
+	if len(s) >= totalWidth {
 		return s
 	}
-	n := total_width - len(s)
+	n := totalWidth - len(s)
 	div := n / 2
 	return strings.Repeat(" ", div) + s
 }
 
+// LayerString overlays a string on top of a background string at position (x, y).
+// If hideOverflow is true, parts of the top string that exceed the background bounds are hidden.
 func LayerString(background, top string, x, y int, hideOverflow bool) string {
 	bgLines := strings.Split(background, "\n")
 	topLines := strings.Split(top, "\n")
@@ -95,6 +106,7 @@ func LayerString(background, top string, x, y int, hideOverflow bool) string {
 	return strings.Join(bgLines, "\n")
 }
 
+// cellsToString converts a 2D grid of Cells to a string with ANSI colors
 func cellsToString(grid [][]Cell) string {
 	lines := make([]string, len(grid))
 	for i, row := range grid {
@@ -113,6 +125,8 @@ func cellsToString(grid [][]Cell) string {
 	return strings.Join(lines, "\n") + "\n"
 }
 
+// LayerCanvas overlays a Cell grid on top of a background Cell grid at position (x, y).
+// If hideOverflow is true, parts of the top canvas that exceed the background bounds are hidden.
 func LayerCanvas(background, topCan [][]Cell, x, y int, hideOverflow bool) string {
 	bg := make([][]Cell, len(background))
 	for i := range background {
@@ -202,4 +216,10 @@ func LayerCanvas(background, topCan [][]Cell, x, y int, hideOverflow bool) strin
 	}
 
 	return cellsToString(bg)
+}
+
+// BeepCmd returns a tea.Cmd that sends a terminal bell character
+func BeepCmd() tea.Cmd {
+	fmt.Print("\a")
+	return nil
 }
