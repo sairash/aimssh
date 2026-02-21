@@ -14,11 +14,20 @@ import (
 
 func main() {
 	var runAsSSH bool
+	var host string
+	var port string
+
 	flag.BoolVar(&runAsSSH, "ssh", false, "run as SSH server")
+	flag.StringVar(&host, "host", "0.0.0.0", "host to listen on")
+	flag.StringVar(&port, "port", "13234", "port to listen on")
+
 	flag.Parse()
 
 	if runAsSSH {
 		cfg := app.DefaultServerConfig()
+		cfg.Host = host
+		cfg.Port = port
+
 		app.RunServer(cfg)
 		return
 	}

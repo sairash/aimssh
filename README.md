@@ -146,7 +146,7 @@ aimssh
 
 __Run aimssh as server:__
 ```sh
-aimssh -ssh true
+aimssh -ssh true -host 0.0.0.0 -port 13234
 ```
 <br/>
 
