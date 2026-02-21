@@ -7,7 +7,7 @@ build:
 	go build -o $(OUTPUT_DIR)/$(BINARY_NAME)
 
 ssh: build
-	./$(OUTPUT_DIR)/$(BINARY_NAME) -ssh true
+	./$(OUTPUT_DIR)/$(BINARY_NAME) -ssh=true
 
 pomo: build
 	./$(OUTPUT_DIR)/$(BINARY_NAME)
@@ -25,4 +25,3 @@ clean:
 	rm -rf $(OUTPUT_DIR)
 
 .PHONY: build ssh pomo test cross-build clean $(PLATFORMS)
-
