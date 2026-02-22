@@ -7,7 +7,7 @@ build:
 	go build -o $(OUTPUT_DIR)/$(BINARY_NAME)
 
 ssh: build
-	./$(OUTPUT_DIR)/$(BINARY_NAME) -ssh=true
+	./$(OUTPUT_DIR)/$(BINARY_NAME) ssh
 
 pomo: build
 	./$(OUTPUT_DIR)/$(BINARY_NAME)

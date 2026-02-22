@@ -146,12 +146,12 @@ aimssh
 
 __Run aimssh as server:__
 ```sh
-aimssh -ssh -host 0.0.0.0 -port 13234
+aimssh ssh --host 0.0.0.0 --port 13234
 ```
 
 __or__
 ```sh
-aimssh -ssh=true -host=0.0.0.0 -port=13234
+aimssh ssh --host=0.0.0.0 --port=13234
 ```
 <br/>
 
